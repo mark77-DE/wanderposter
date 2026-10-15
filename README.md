@@ -26,7 +26,7 @@ Läuft komplett im Browser, es gibt keinen Server-Teil.
   `61-map` Kartenhintergrund (Kacheln) · `70-interaction` Ziehen, Route laden · `80-controls` Eingabefelder, Farben ·
   `90-export` PNG/SVG/Teilen · `98-start` Startcode · `99-pwa` Web-App-Anbindung (nur in `dist/`)
   `45-stubs` ersetzt `50-osm` und `61-map` in der Einzeldatei ohne Fremdserver-Funktionen.
-- `pwa/` – `manifest.webmanifest`, `sw.template.js` (Service Worker), `icons/`
+- `pwa/` – `manifest.webmanifest`, `sw.template.js` (Service Worker), Quell-Icons in `icons/` (werden als `web-icons/` ausgeliefert)
 
 Nach Änderungen im Quellcode: `python3 build.py` (nur Python 3, keine weiteren Pakete).
 
@@ -48,7 +48,7 @@ Danach in den *Hosting-Einstellungen* die Weiterleitung von HTTP auf HTTPS aktiv
 
 **3. Dateien hochladen**
 Wichtig: den **Inhalt** des Ordners `dist/` hochladen, nicht den Ordner selbst. Danach muss
-`index.html` direkt im Stammverzeichnis liegen, daneben `sw.js`, `manifest.webmanifest`, `css/`, `js/`, `icons/`.
+`index.html` direkt im Stammverzeichnis liegen, daneben `sw.js`, `manifest.webmanifest`, `css/`, `js/`, `web-icons/`.
 
 - *Über Plesk:* *Dateien* → in den Ordner `wanderposter.example.com` wechseln → hochladen (z. B. `dist` als ZIP packen,
   hochladen, mit „Entpacken“ auspacken; dabei darauf achten, dass kein zusätzlicher Unterordner entsteht).

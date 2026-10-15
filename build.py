@@ -63,8 +63,8 @@ def feature_blocks(html, keep):
 
 PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1e3530">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="web-icons/icon-192.png">
+<link rel="apple-touch-icon" href="web-icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Wander-Poster">"""
@@ -106,10 +106,10 @@ def build_multi():
 
     write(out / "css" / "style.css", read(SRC / "css" / "style.css"))
     shutil.copy(SRC / "pwa" / "manifest.webmanifest", out / "manifest.webmanifest")
-    (out / "icons").mkdir(parents=True, exist_ok=True)
+    (out / "web-icons").mkdir(parents=True, exist_ok=True)
     for icon in (SRC / "pwa" / "icons").iterdir():
-        shutil.copy(icon, out / "icons" / icon.name)
-        assets.append(f"icons/{icon.name}")
+        shutil.copy(icon, out / "web-icons" / icon.name)
+        assets.append(f"web-icons/{icon.name}")
 
     sw = read(SRC / "pwa" / "sw.template.js")
     sw = sw.replace("__BUILD__", BUILD)
@@ -125,4 +125,4 @@ if __name__ == "__main__":
     print("Build", BUILD, "fertig:")
     for p in sorted((ROOT / "dist-single").iterdir()):
         print("  dist-single/" + p.name, p.stat().st_size // 1024, "KB")
-    print("  dist/  (index.html, css/, js/, icons/, manifest.webmanifest, sw.js)")
+    print("  dist/  (index.html, css/, js/, web-icons/, manifest.webmanifest, sw.js)")
