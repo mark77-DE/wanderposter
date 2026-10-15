@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wander-Poster</title>
+<!--PWA_HEAD-->
+<!--CSS-->
+</head>
+<body>
+<div class="app">
+  <section class="stage" id="stage" aria-label="Vorschau">
+    <div class="poster-wrap">
+      <svg id="poster" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Poster-Vorschau"></svg>
+    </div>
+    <p class="caption" id="caption"></p>
+  </section>
+
+  <aside class="panel">
+    <h1>Wander-Poster</h1>
+    <p class="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
+
+    <div class="group">
+      <h2>Route</h2>
+      <div class="row">
+        <label class="btn primary" for="file">GPX-Datei wählen</label>
+        <input type="file" id="file" hidden>
+        <button class="btn" id="demo" type="button">Beispielroute</button>
+      </div>
+      <p id="tinfo"></p>
+      <p class="hint">Die Datei kann auch auf die Vorschau gezogen werden. Die Höhe stammt aus der GPX-Datei und wird geglättet.</p>
+      <p id="msg" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="group">
+      <h2>Text</h2>
+      <label class="field">Titel<input type="text" id="title" autocomplete="off" placeholder="z. B. Brocken"></label>
+      <label class="field">Region<input type="text" id="region" autocomplete="off" placeholder="z. B. Harz"></label>
+      <label class="field">Datum<input type="date" id="date"></label>
+    </div>
+
+    <div class="group">
+      <h2>Format</h2>
+      <p class="label-line" style="margin-top:0">Leinwand (quadratisch)</p>
+      <div class="seg fmtseg" role="group" aria-label="Leinwandgröße">
+        <button type="button" data-fmt="c100" aria-pressed="false">100 mm</button>
+        <button type="button" data-fmt="c150" aria-pressed="true">150 mm</button>
+        <button type="button" data-fmt="c200" aria-pressed="false">200 mm</button>
+      </div>
+      <p class="label-line">Social Media</p>
+      <div class="seg fmtseg" role="group" aria-label="Social-Media-Format">
+        <button type="button" data-fmt="story" aria-pressed="false">9:16 Story</button>
+        <button type="button" data-fmt="feed" aria-pressed="false">4:5 Feed</button>
+        <button type="button" data-fmt="sq" aria-pressed="false">1:1 Quadrat</button>
+      </div>
+      <p class="hint" id="fmtHint"></p>
+      <label class="check" id="safeRow" hidden><input type="checkbox" id="optSafe" checked> App-Bereiche der Story einblenden</label>
+      <p class="label-line">Farben</p>
+      <div class="presets" id="presets" role="group" aria-label="Farbvorlagen"></div>
+      <div class="colors">
+        <label class="color">Hintergrund<input type="color" id="cBg"></label>
+        <label class="color">Schrift und Linien<input type="color" id="cInk"></label>
+        <label class="color">Route<input type="color" id="cRoute"></label>
+      </div>
+      <p class="hint" id="contrastHint" style="color:var(--accent)"></p>
+      <label class="check"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
+      <label class="check"><input type="checkbox" id="optStats" checked> Kennzahlen unten anzeigen</label>
+      <div id="statsOptions" style="margin-left:20px">
+        <label class="check"><input type="checkbox" data-stat="distance" checked> Strecke</label>
+        <label class="check"><input type="checkbox" data-stat="ascent" checked> Höhenmeter (HM)</label>
+        <label class="check"><input type="checkbox" data-stat="max" checked> Höchster Punkt</label>
+        <label class="check"><input type="checkbox" data-stat="min" checked> Tiefster Punkt</label>
+        <label class="check"><input type="checkbox" data-stat="elapsed"> Gesamtzeit</label>
+        <label class="check"><input type="checkbox" data-stat="moving"> Zeit in Bewegung (geschätzt)</label>
+        <p class="hint">Geschätzt aus GPS-Zeitstempeln; Pausen und Lücken über 5 Minuten zählen nicht als Bewegungszeit.</p>
+      </div>
+      <div class="slider">
+        <label for="statsFont">Schriftgröße der Statistiken</label>
+        <input type="range" id="statsFont" min="80" max="180" step="5" value="130">
+        <output id="statsFontOut">130 %</output>
+      </div>
+      <label class="check"><input type="checkbox" id="optPlates" checked> Beschriftungen hinterlegen</label>
+      <div class="slider">
+        <label for="plateOpacity">Transparenz der Label-Hintergründe</label>
+        <input type="range" id="plateOpacity" min="0" max="100" step="1" value="94">
+        <output id="plateOpacityOut">94 %</output>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Hintergrundbild</h2>
+      <div class="row">
+        <label class="btn" for="bgFile">Bild wählen</label>
+        <input type="file" id="bgFile" accept="image/*" hidden>
+        <button class="btn small" id="bgRemove" type="button" hidden>Entfernen</button>
+      </div>
+      <div id="bgCtl" hidden>
+        <div class="slider">
+          <label for="bgT">Transparenz</label>
+          <input type="range" id="bgT" min="0" max="95" value="65">
+          <output id="bgTOut">65 %</output>
+        </div>
+        <div class="slider">
+          <label for="bgS">Zoom</label>
+          <input type="range" id="bgS" min="50" max="400" value="100">
+          <output id="bgSOut">100 %</output>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="bgPos" type="button" aria-pressed="false">Bild positionieren</button>
+          <button class="btn" id="bgFit" type="button">Einpassen</button>
+          <button class="btn" id="bgCrop" type="button">Auf Format zuschneiden</button>
+          <button class="btn" id="bgOrig" type="button" hidden>Original</button>
+        </div>
+        <p class="hint">Positionieren: Bild auf der Vorschau ziehen, mit Mausrad oder Zoom-Regler skalieren. „Einpassen“ füllt das Format, „Zuschneiden“ behält nur den sichtbaren Ausschnitt.</p>
+      </div>
+    </div>
+
+    <!--FEATURE:selfhost-->
+    <div class="group">
+      <h2>Kartenhintergrund</h2>
+      <label class="field">Stil
+        <select id="mapStyle">
+          <option value="none">Keiner</option>
+          <option value="topo">Topo (OpenTopoMap)</option>
+          <option value="osm">Standard (OpenStreetMap)</option>
+          <option value="light">Minimal hell (CARTO)</option>
+          <option value="dark">Minimal dunkel (CARTO)</option>
+          <option value="custom">Eigene Kachel-URL …</option>
+        </select>
+      </label>
+      <div id="mapCtl" hidden>
+        <div id="mapCustom" hidden>
+          <label class="field">Kachel-URL<input type="text" id="mapUrl" placeholder="https://…/{z}/{x}/{y}.png" autocomplete="off"></label>
+          <label class="field">Quellenangabe<input type="text" id="mapAttrText" placeholder="© Anbieter, © OpenStreetMap-Mitwirkende" autocomplete="off"></label>
+        </div>
+        <div class="slider">
+          <label for="mapOp">Deckkraft</label>
+          <input type="range" id="mapOp" min="10" max="100" value="70">
+          <output id="mapOpOut">70 %</output>
+        </div>
+        <label class="check"><input type="checkbox" id="mapGray"> Graustufen</label>
+        <label class="field" style="margin-top:10px">Ausdehnung
+          <select id="mapExt"><option value="box">Nur Kartenbereich</option><option value="all">Ganzes Poster</option></select>
+        </label>
+        <label class="check"><input type="checkbox" id="mapAttr" checked> Quellenangabe auf dem Poster</label>
+        <p class="hint" id="mapAttrHint"></p>
+        <p class="hint" id="mapStatus"></p>
+      </div>
+    </div>
+    <!--/FEATURE-->
+
+    <div class="group">
+      <h2>Highlights</h2>
+      <div class="row">
+        <button class="btn" id="addHl" type="button" aria-pressed="false">Highlight setzen</button>
+        <button class="btn" id="peaks" type="button">Gipfel vorschlagen</button>
+      </div>
+      <!--FEATURE:selfhost-->
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="osm" type="button">Vorschläge aus OpenStreetMap</button>
+        <label class="inline">Abstand
+          <select id="osmR"><option value="100">100 m</option><option value="200">200 m</option><option value="300" selected>300 m</option><option value="500">500 m</option></select>
+        </label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label class="field" style="flex:1;margin:0">Ort oder Highlight suchen
+          <input type="search" id="osmSearch" placeholder="z. B. Brocken" autocomplete="off">
+        </label>
+        <button class="btn" id="osmSearchBtn" type="button">Suchen</button>
+      </div>
+      <div id="osmbox" hidden>
+        <div id="osmlist"></div>
+        <button class="btn primary small" id="osmAdd" type="button" style="margin-top:8px">Auswahl übernehmen</button>
+      </div>
+      <p class="hint">„Highlight setzen“ und dann auf Route oder Höhenprofil tippen. Die nummerierten Marker lassen sich entlang der Route ziehen, die Beschriftung frei verschieben und über den Regler drehen.</p>
+      <!--/FEATURE-->
+      <div class="slider">
+        <label for="hlFont">Schriftgröße der Beschriftungen</label>
+        <input type="range" id="hlFont" min="70" max="160" step="5" value="100">
+        <output id="hlFontOut">100 %</output>
+      </div>
+      <label class="field" style="margin-top:10px">Automatische Labels ausrichten an
+        <select id="labelMode"><option value="profile">Höhenprofil</option><option value="route">Route</option></select>
+      </label>
+      <div class="slider">
+        <label for="gap" id="gapLabel">Abstand zum höchsten Punkt</label>
+        <input type="range" id="gap" min="3" max="16" step="0.5" value="9">
+        <output id="gapOut">9,0</output>
+      </div>
+      <p class="hint" id="ovl" style="color:var(--accent)"></p>
+      <button class="btn small" id="resetPos" type="button">Label-Positionen zurücksetzen</button>
+      <div id="hlist"></div>
+    </div>
+
+    <div class="group">
+      <h2>Export</h2>
+      <div class="row">
+        <button class="btn primary" id="expPng" type="button">PNG (300 dpi)</button>
+        <button class="btn" id="expSvg" type="button">SVG</button>
+        <button class="btn" id="shareBtn" type="button" hidden>Teilen …</button>
+      </div>
+      <p class="hint">PNG ist für den Druck am sichersten, die Schrift ist dort fest eingebettet.</p>
+    </div>
+  </aside>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--JS-->
+</body>
+</html>
