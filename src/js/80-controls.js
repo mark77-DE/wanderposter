@@ -63,8 +63,30 @@ function bindSeg(id,attr,onPick){
 Array.prototype.forEach.call(document.querySelectorAll('.fmtseg'),function(seg){
   seg.addEventListener('click',function(e){
     var b=e.target.closest('button'); if(!b){return;}
-    state.fmt=b.getAttribute('data-fmt'); syncMapUi(); applyFormat(); render();
+    state.fmt=b.getAttribute('data-fmt'); applyFormatDefaults(state.fmt); syncMapUi(); applyFormat(); render();
   });
+});
+function applyFormatDefaults(key){
+  var compact=key==='c100';
+  state.hlFontSize=compact?90:100; $('#hlFont').value=state.hlFontSize; $('#hlFontOut').textContent=state.hlFontSize+' %';
+  state.labelGap=compact?4:9; $('#gap').value=state.labelGap; $('#gapOut').textContent=de(state.labelGap,1);
+  state.plates=!compact; $('#optPlates').checked=state.plates;
+  state.colors.statLabel=compact?state.colors.statValue:mixHex(state.colors.bg,state.colors.ink,0.68);
+  state.map.op=compact?65:70; $('#mapOp').value=state.map.op; $('#mapOpOut').textContent=state.map.op+' %';
+  syncColors();
+}
+function refreshPrintFormat(){syncMapUi();applyFormat();render();}
+['customWidth','customHeight'].forEach(function(id){
+  $('#'+id).addEventListener('input',function(e){
+    var v=+e.target.value;
+    if(!isFinite(v)){return;}
+    v=clamp(v,50,1000); state[id==='customWidth'?'customWidth':'customHeight']=v;
+    if(state.fmt==='custom'){refreshPrintFormat();}
+  });
+});
+$('#printBleed').addEventListener('input',function(e){
+  var v=+e.target.value; if(!isFinite(v)){return;}
+  state.printBleedMm=clamp(v,0,10); refreshPrintFormat();
 });
 $('#optSafe').addEventListener('change',function(e){state.safe=e.target.checked;render();});
 
@@ -81,6 +103,8 @@ function renderPresets(){
 function syncColors(){
   var c=state.colors;
   $('#cBg').value=c.bg; $('#cInk').value=c.ink; $('#cRoute').value=c.route;
+  $('#cProfile').value=c.profile||c.ink; $('#cHighlight').value=c.highlight||c.ink;
+  $('#cStatValue').value=c.statValue||c.ink; $('#cStatLabel').value=c.statLabel||mixHex(c.bg,c.ink,0.68);
   Array.prototype.forEach.call($('#presets').children,function(b){
     var p=PRESETS[+b.dataset.i];
     var on=p.bg===c.bg.toLowerCase()&&p.ink===c.ink.toLowerCase()&&p.route===c.route.toLowerCase();
@@ -94,10 +118,10 @@ function syncColors(){
 $('#presets').addEventListener('click',function(e){
   var b=e.target.closest('.preset'); if(!b){return;}
   var p=PRESETS[+b.dataset.i];
-  state.colors={bg:p.bg,ink:p.ink,route:p.route};
+  state.colors={bg:p.bg,ink:p.ink,route:p.route,profile:p.ink,highlight:p.ink,statValue:p.ink,statLabel:mixHex(p.bg,p.ink,0.68)};
   syncColors(); render();
 });
-[['#cBg','bg'],['#cInk','ink'],['#cRoute','route']].forEach(function(pair){
+[['#cBg','bg'],['#cInk','ink'],['#cRoute','route'],['#cProfile','profile'],['#cHighlight','highlight'],['#cStatValue','statValue'],['#cStatLabel','statLabel']].forEach(function(pair){
   $(pair[0]).addEventListener('input',function(e){
     state.colors[pair[1]]=e.target.value; syncColors(); render();
   });

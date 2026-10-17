@@ -24,7 +24,9 @@ function contrast(a,b){var l1=lum(a), l2=lum(b);return (Math.max(l1,l2)+0.05)/(M
 // secondary text is the ink colour mixed towards the background
 function palette(){
   var c=state.colors;
-  return {bg:c.bg, ink:c.ink, route:c.route, muted:mixHex(c.bg,c.ink,0.68)};
+  return {bg:c.bg, ink:c.ink, route:c.route, profile:c.profile||c.ink,
+    highlight:c.highlight||c.ink, statValue:c.statValue||c.ink,
+    statLabel:c.statLabel||mixHex(c.bg,c.ink,0.68), muted:mixHex(c.bg,c.ink,0.68)};
 }
 
 var $=function(s){return document.querySelector(s);};
@@ -36,7 +38,7 @@ var isoToday=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+
 
 var state={
   track:null, title:'Brocken-Runde', region:'Harz', date:isoToday,
-  fmt:'c150', safe:true, colors:{bg:'#e8ece6',ink:'#1e3530',route:'#c4392d'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:false,moving:false}, statsFontSize:130, plates:true, plateOpacity:94,
+  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#e8ece6',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:false,moving:false}, statsFontSize:130, plates:true, plateOpacity:94,
   hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, mapB:LAY.mapB
 };
 
@@ -53,7 +55,18 @@ var FORMATS={
   sq:   {px:[1080,1080], H:100,    K:1.3, T:7,    B:94.6,  profH:11, name:'Quadrat 1:1',  tag:'quadrat',
          hint:'Quadratischer Feed-Beitrag, Facebook, Chat. 1080 × 1080 px.'}
 };
-function fmt(){return FORMATS[state.fmt];}
+function fmt(){
+  var base=FORMATS[state.fmt]||FORMATS.c150, add=state.printBleedMm*2;
+  if(state.fmt!=='custom'&&base.print){
+    var side=base.mm+add;
+    return Object.assign({},base,{mm:side,mmW:side,mmH:side});
+  }
+  if(state.fmt==='custom'){
+    var mmW=state.customWidth+add, mmH=state.customHeight+add;
+    return {print:true,mm:mmW,mmW:mmW,mmH:mmH,H:100*mmH/mmW,K:1,T:7,B:100*mmH/mmW-5.4,profH:11,name:'Freies Format',tag:'custom'};
+  }
+  return base;
+}
 function titleFs(){return fmt().print?TITLE_FS:TITLE_FS*1.15;}
 // derive the vertical layout of the current format
 function applyFormat(){
@@ -76,6 +89,8 @@ function applyFormat(){
   });
   $('#fmtHint').textContent=F.print?'':F.hint;
   $('#safeRow').hidden=state.fmt!=='story';
+  $('#printOptions').hidden=!F.print;
+  $('#customSize').hidden=state.fmt!=='custom';
 }
 
 // ---------- Helpers ----------

@@ -100,7 +100,7 @@ $('#osm').addEventListener('click',async function(){
     say(state.osm.length?state.osm.length+' Vorschläge gefunden.':'Keine benannten Orte in diesem Abstand gefunden.');
   }catch(err){
     say(err&&err.name==='TypeError'
-      ?'Die Abfrage wurde blockiert. Sie funktioniert nur, wenn die Seite auf einem eigenen Server liegt.'
+      ?'OpenStreetMap-Suche nicht erreichbar oder vom Dienst/Browser blockiert. Bitte 30 Sekunden warten und erneut versuchen.'
       :'Abfrage fehlgeschlagen: '+((err&&err.message)||'unbekannter Fehler'));
   }finally{btn.disabled=false;btn.textContent='Vorschläge aus OpenStreetMap';}
 });
@@ -117,7 +117,7 @@ $('#osmSearchBtn').addEventListener('click',async function(){
     say(state.osm.length?state.osm.length+' passende Orte gefunden.':'Keine passenden Orte in diesem Abstand gefunden.');
   }catch(err){
     say(err&&err.name==='TypeError'
-      ?'Die Abfrage wurde blockiert. Sie funktioniert nur, wenn die Seite auf einem eigenen Server liegt.'
+      ?'OpenStreetMap-Suche nicht erreichbar oder vom Dienst/Browser blockiert. Bitte 30 Sekunden warten und erneut versuchen.'
       :'Abfrage fehlgeschlagen: '+((err&&err.message)||'unbekannter Fehler'));
   }finally{btn.disabled=false;btn.textContent='Suchen';}
 });

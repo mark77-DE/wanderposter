@@ -42,8 +42,8 @@ function render(){
     if(t.hasEle){
       var pp=t.s.map(function(p){return [geo.profX(p.d),geo.profY(p.e)];});
       var line='M'+pp.map(function(p){return f(p[0])+' '+f(p[1]);}).join('L');
-      h+='<path d="'+line+'L'+f(pp[pp.length-1][0])+' '+LAY.profB+'L'+f(pp[0][0])+' '+LAY.profB+'Z" fill="'+pal.ink+'" fill-opacity=".14"/>';
-      h+='<path d="'+line+'" fill="none" stroke="'+pal.ink+'" stroke-width="'+sc(.45)+'" stroke-linejoin="round"/>';
+      h+='<path d="'+line+'L'+f(pp[pp.length-1][0])+' '+LAY.profB+'L'+f(pp[0][0])+' '+LAY.profB+'Z" fill="'+pal.profile+'" fill-opacity=".14"/>';
+      h+='<path d="'+line+'" fill="none" stroke="'+pal.profile+'" stroke-width="'+sc(.45)+'" stroke-linejoin="round"/>';
     }else{
       h+='<text x="50" y="'+((LAY.profT+LAY.profB)/2)+'" font-size="3" font-weight="500" text-anchor="middle" fill="'+pal.muted+'">Keine Höhendaten in der GPX-Datei</text>';
     }
@@ -72,8 +72,8 @@ function render(){
       items.forEach(function(item){
         var statsScale=state.statsFontSize/100, valueFs=sc(2.35*statsScale), labelFs=sc(1.5*statsScale);
         var valueOffset=sc(1.8+(state.statsFontSize-100)*0.01);
-        h+='<g class="stat"><text class="stat-value" x="0" y="'+f(LAY.statY-valueOffset)+'" font-size="'+valueFs+'" font-weight="600" text-anchor="middle" fill="'+pal.ink+'">'+esc(item.value)+'</text>'+ 
-          '<text class="stat-label" x="0" y="'+LAY.statY+'" font-size="'+labelFs+'" font-weight="500" text-anchor="middle" fill="'+pal.muted+'">'+esc(item.label)+'</text></g>';
+        h+='<g class="stat"><text class="stat-value" x="0" y="'+f(LAY.statY-valueOffset)+'" font-size="'+valueFs+'" font-weight="600" text-anchor="middle" fill="'+pal.statValue+'">'+esc(item.value)+'</text>'+ 
+          '<text class="stat-label" x="0" y="'+LAY.statY+'" font-size="'+labelFs+'" font-weight="500" text-anchor="middle" fill="'+pal.statLabel+'">'+esc(item.label)+'</text></g>';
       });
     }
   }
@@ -139,15 +139,15 @@ function drawHighlights(geo,pal){
     if(showName){
       var nl=wrapName(hl.name,hl), base=showEleLine?-hlFs(3.1,hl):0;
       nl.forEach(function(line,k){
-        svgEl('text',{x:0,y:f(base-(nl.length-1-k)*hlFs(3.5,hl)),'font-size':hlFs(3.3,hl),'font-weight':600,'text-anchor':'middle',fill:pal.ink},lab,line);
+        svgEl('text',{x:0,y:f(base-(nl.length-1-k)*hlFs(3.5,hl)),'font-size':hlFs(3.3,hl),'font-weight':600,'text-anchor':'middle',fill:pal.highlight},lab,line);
       });
       lines++;
     }
     if(showEleLine){
       var eleShown=hl.ele!=null?hl.ele:sm.e;
-      svgEl('text',{x:0,y:0,'font-size':showName?hlFs(2.4,hl):hlFs(3.1,hl),'font-weight':showName?500:600,'text-anchor':'middle',fill:showName?pal.muted:pal.ink},lab,de(eleShown)+' m');lines++;
+      svgEl('text',{x:0,y:0,'font-size':showName?hlFs(2.4,hl):hlFs(3.1,hl),'font-weight':showName?500:600,'text-anchor':'middle',fill:pal.highlight},lab,de(eleShown)+' m');lines++;
     }
-    if(!lines){svgEl('text',{x:0,y:0,'font-size':hlFs(3.3,hl),'font-weight':600,'text-anchor':'middle',fill:pal.muted},lab,'Highlight');}
+    if(!lines){svgEl('text',{x:0,y:0,'font-size':hlFs(3.3,hl),'font-weight':600,'text-anchor':'middle',fill:pal.highlight},lab,'Highlight');}
     var bb=lab.getBBox(), rr=hl.rot*Math.PI/180;
     var halfW=(bb.width/2+1.3)*Math.abs(Math.cos(rr))+(bb.height/2+1)*Math.abs(Math.sin(rr));
     items.push({hl:hl,lab:lab,bb:bb,halfW:halfW,mp:mp,px:px,py:py,anchor:t.hasEle&&state.labelMode==='profile'?[px,py]:mp});
@@ -290,7 +290,7 @@ function wrapName(name,hl){
 
 function updateCaption(){
   var F=fmt(), txt;
-  if(F.print){var px=Math.round(F.mm/25.4*300);txt='Vorschau '+F.mm+' × '+F.mm+' mm, PNG-Export '+de(px)+' × '+de(px)+' px';}
+  if(F.print){var px=Math.round(F.mmW/25.4*300), py=Math.round(F.mmH/25.4*300);txt='Vorschau '+de(F.mmW)+' × '+de(F.mmH)+' mm, PNG-Export '+de(px)+' × '+de(py)+' px';}
   else{txt='Vorschau '+F.name+', PNG-Export '+de(F.px[0])+' × '+de(F.px[1])+' px';}
   $('#caption').textContent=txt;
 }

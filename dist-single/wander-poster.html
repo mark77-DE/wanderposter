@@ -37,7 +37,11 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 .caption{margin:0;color:var(--muted);font-size:13px;text-align:center}
 .stage.drop{outline:2px dashed var(--accent);outline-offset:-8px}
 
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px}
+.panel{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px}
+.panel>.group{order:5}
+.panel>#routeGroup{order:1}
+.panel>#highlightsGroup{order:2}
+.panel>#customizeGroup{order:3}
 .panel h1{font-size:20px;margin:0 0 4px;font-weight:650}
 .panel .lead{margin:0 0 6px;color:var(--muted);font-size:13.5px}
 .group{border-top:1px solid var(--line);padding:14px 0 16px}
@@ -45,7 +49,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 .group h2{font-size:15px;margin:0 0 10px;font-weight:650}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:13px;color:var(--muted)}
-.field input[type=text],.field input[type=date]{font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:.5rem .65rem;width:100%;min-width:0}
+.field input[type=text],.field input[type=date],.field input[type=number]{font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:.5rem .65rem;width:100%;min-width:0}
 .field input:focus-visible,.btn:focus-visible,.seg button:focus-visible,.hl-card input:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;cursor:pointer}
 .btn:hover{border-color:var(--muted)}
@@ -125,7 +129,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
     <h1>Wander-Poster</h1>
     <p class="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
 
-    <div class="group">
+    <div class="group" id="routeGroup">
       <h2>Route</h2>
       <div class="row">
         <label class="btn primary" for="file">GPX-Datei wählen</label>
@@ -144,13 +148,22 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
       <label class="field">Datum<input type="date" id="date"></label>
     </div>
 
-    <div class="group">
-      <h2>Format</h2>
-      <p class="label-line" style="margin-top:0">Leinwand (quadratisch)</p>
-      <div class="seg fmtseg" role="group" aria-label="Leinwandgröße">
-        <button type="button" data-fmt="c100" aria-pressed="false">100 mm</button>
-        <button type="button" data-fmt="c150" aria-pressed="true">150 mm</button>
-        <button type="button" data-fmt="c200" aria-pressed="false">200 mm</button>
+    <div class="group" id="customizeGroup">
+      <h2>Farben und Größen anpassen</h2>
+      <div id="printOptions">
+        <p class="label-line" style="margin-top:0">Leinwandformat</p>
+        <div class="seg fmtseg" role="group" aria-label="Leinwandgröße">
+          <button type="button" data-fmt="c100" aria-pressed="false">100 × 100</button>
+          <button type="button" data-fmt="c150" aria-pressed="true">150 × 150</button>
+          <button type="button" data-fmt="c200" aria-pressed="false">200 × 200</button>
+          <button type="button" data-fmt="custom" aria-pressed="false">Frei</button>
+        </div>
+        <div class="row" id="customSize" hidden>
+          <label class="field" style="flex:1;margin:10px 0 0">Breite (mm)<input type="number" id="customWidth" min="50" max="1000" step="1" value="100"></label>
+          <label class="field" style="flex:1;margin:10px 0 0">Höhe (mm)<input type="number" id="customHeight" min="50" max="1000" step="1" value="100"></label>
+        </div>
+        <label class="field" style="margin-top:10px">Druckzugabe je Seite (mm)<input type="number" id="printBleed" min="0" max="10" step="0.5" value="0"></label>
+        <p class="hint">Die Zugabe kommt an jeder Seite hinzu: 100 × 100 mm mit 2 mm je Seite ergibt 104 × 104 mm.</p>
       </div>
       <p class="label-line">Social Media</p>
       <div class="seg fmtseg" role="group" aria-label="Social-Media-Format">
@@ -166,6 +179,10 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
         <label class="color">Hintergrund<input type="color" id="cBg"></label>
         <label class="color">Schrift und Linien<input type="color" id="cInk"></label>
         <label class="color">Route<input type="color" id="cRoute"></label>
+        <label class="color">Höhenprofil<input type="color" id="cProfile"></label>
+        <label class="color">Highlight-Labels<input type="color" id="cHighlight"></label>
+        <label class="color">Statistikwerte<input type="color" id="cStatValue"></label>
+        <label class="color">Statistiklabels<input type="color" id="cStatLabel"></label>
       </div>
       <p class="hint" id="contrastHint" style="color:var(--accent)"></p>
       <label class="check"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
@@ -221,8 +238,8 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
     </div>
 
 
-    <div class="group">
-      <h2>Highlights</h2>
+    <div class="group" id="highlightsGroup">
+      <h2>Highlights suchen</h2>
       <div class="row">
         <button class="btn" id="addHl" type="button" aria-pressed="false">Highlight setzen</button>
         <button class="btn" id="peaks" type="button">Gipfel vorschlagen</button>
@@ -310,7 +327,9 @@ function contrast(a,b){var l1=lum(a), l2=lum(b);return (Math.max(l1,l2)+0.05)/(M
 // secondary text is the ink colour mixed towards the background
 function palette(){
   var c=state.colors;
-  return {bg:c.bg, ink:c.ink, route:c.route, muted:mixHex(c.bg,c.ink,0.68)};
+  return {bg:c.bg, ink:c.ink, route:c.route, profile:c.profile||c.ink,
+    highlight:c.highlight||c.ink, statValue:c.statValue||c.ink,
+    statLabel:c.statLabel||mixHex(c.bg,c.ink,0.68), muted:mixHex(c.bg,c.ink,0.68)};
 }
 
 var $=function(s){return document.querySelector(s);};
@@ -322,7 +341,7 @@ var isoToday=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+
 
 var state={
   track:null, title:'Brocken-Runde', region:'Harz', date:isoToday,
-  fmt:'c150', safe:true, colors:{bg:'#e8ece6',ink:'#1e3530',route:'#c4392d'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:false,moving:false}, statsFontSize:130, plates:true, plateOpacity:94,
+  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#e8ece6',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:false,moving:false}, statsFontSize:130, plates:true, plateOpacity:94,
   hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, mapB:LAY.mapB
 };
 
@@ -339,7 +358,18 @@ var FORMATS={
   sq:   {px:[1080,1080], H:100,    K:1.3, T:7,    B:94.6,  profH:11, name:'Quadrat 1:1',  tag:'quadrat',
          hint:'Quadratischer Feed-Beitrag, Facebook, Chat. 1080 × 1080 px.'}
 };
-function fmt(){return FORMATS[state.fmt];}
+function fmt(){
+  var base=FORMATS[state.fmt]||FORMATS.c150, add=state.printBleedMm*2;
+  if(state.fmt!=='custom'&&base.print){
+    var side=base.mm+add;
+    return Object.assign({},base,{mm:side,mmW:side,mmH:side});
+  }
+  if(state.fmt==='custom'){
+    var mmW=state.customWidth+add, mmH=state.customHeight+add;
+    return {print:true,mm:mmW,mmW:mmW,mmH:mmH,H:100*mmH/mmW,K:1,T:7,B:100*mmH/mmW-5.4,profH:11,name:'Freies Format',tag:'custom'};
+  }
+  return base;
+}
 function titleFs(){return fmt().print?TITLE_FS:TITLE_FS*1.15;}
 // derive the vertical layout of the current format
 function applyFormat(){
@@ -362,6 +392,8 @@ function applyFormat(){
   });
   $('#fmtHint').textContent=F.print?'':F.hint;
   $('#safeRow').hidden=state.fmt!=='story';
+  $('#printOptions').hidden=!F.print;
+  $('#customSize').hidden=state.fmt!=='custom';
 }
 
 // ---------- Helpers ----------
@@ -594,8 +626,8 @@ function render(){
     if(t.hasEle){
       var pp=t.s.map(function(p){return [geo.profX(p.d),geo.profY(p.e)];});
       var line='M'+pp.map(function(p){return f(p[0])+' '+f(p[1]);}).join('L');
-      h+='<path d="'+line+'L'+f(pp[pp.length-1][0])+' '+LAY.profB+'L'+f(pp[0][0])+' '+LAY.profB+'Z" fill="'+pal.ink+'" fill-opacity=".14"/>';
-      h+='<path d="'+line+'" fill="none" stroke="'+pal.ink+'" stroke-width="'+sc(.45)+'" stroke-linejoin="round"/>';
+      h+='<path d="'+line+'L'+f(pp[pp.length-1][0])+' '+LAY.profB+'L'+f(pp[0][0])+' '+LAY.profB+'Z" fill="'+pal.profile+'" fill-opacity=".14"/>';
+      h+='<path d="'+line+'" fill="none" stroke="'+pal.profile+'" stroke-width="'+sc(.45)+'" stroke-linejoin="round"/>';
     }else{
       h+='<text x="50" y="'+((LAY.profT+LAY.profB)/2)+'" font-size="3" font-weight="500" text-anchor="middle" fill="'+pal.muted+'">Keine Höhendaten in der GPX-Datei</text>';
     }
@@ -624,8 +656,8 @@ function render(){
       items.forEach(function(item){
         var statsScale=state.statsFontSize/100, valueFs=sc(2.35*statsScale), labelFs=sc(1.5*statsScale);
         var valueOffset=sc(1.8+(state.statsFontSize-100)*0.01);
-        h+='<g class="stat"><text class="stat-value" x="0" y="'+f(LAY.statY-valueOffset)+'" font-size="'+valueFs+'" font-weight="600" text-anchor="middle" fill="'+pal.ink+'">'+esc(item.value)+'</text>'+ 
-          '<text class="stat-label" x="0" y="'+LAY.statY+'" font-size="'+labelFs+'" font-weight="500" text-anchor="middle" fill="'+pal.muted+'">'+esc(item.label)+'</text></g>';
+        h+='<g class="stat"><text class="stat-value" x="0" y="'+f(LAY.statY-valueOffset)+'" font-size="'+valueFs+'" font-weight="600" text-anchor="middle" fill="'+pal.statValue+'">'+esc(item.value)+'</text>'+ 
+          '<text class="stat-label" x="0" y="'+LAY.statY+'" font-size="'+labelFs+'" font-weight="500" text-anchor="middle" fill="'+pal.statLabel+'">'+esc(item.label)+'</text></g>';
       });
     }
   }
@@ -691,15 +723,15 @@ function drawHighlights(geo,pal){
     if(showName){
       var nl=wrapName(hl.name,hl), base=showEleLine?-hlFs(3.1,hl):0;
       nl.forEach(function(line,k){
-        svgEl('text',{x:0,y:f(base-(nl.length-1-k)*hlFs(3.5,hl)),'font-size':hlFs(3.3,hl),'font-weight':600,'text-anchor':'middle',fill:pal.ink},lab,line);
+        svgEl('text',{x:0,y:f(base-(nl.length-1-k)*hlFs(3.5,hl)),'font-size':hlFs(3.3,hl),'font-weight':600,'text-anchor':'middle',fill:pal.highlight},lab,line);
       });
       lines++;
     }
     if(showEleLine){
       var eleShown=hl.ele!=null?hl.ele:sm.e;
-      svgEl('text',{x:0,y:0,'font-size':showName?hlFs(2.4,hl):hlFs(3.1,hl),'font-weight':showName?500:600,'text-anchor':'middle',fill:showName?pal.muted:pal.ink},lab,de(eleShown)+' m');lines++;
+      svgEl('text',{x:0,y:0,'font-size':showName?hlFs(2.4,hl):hlFs(3.1,hl),'font-weight':showName?500:600,'text-anchor':'middle',fill:pal.highlight},lab,de(eleShown)+' m');lines++;
     }
-    if(!lines){svgEl('text',{x:0,y:0,'font-size':hlFs(3.3,hl),'font-weight':600,'text-anchor':'middle',fill:pal.muted},lab,'Highlight');}
+    if(!lines){svgEl('text',{x:0,y:0,'font-size':hlFs(3.3,hl),'font-weight':600,'text-anchor':'middle',fill:pal.highlight},lab,'Highlight');}
     var bb=lab.getBBox(), rr=hl.rot*Math.PI/180;
     var halfW=(bb.width/2+1.3)*Math.abs(Math.cos(rr))+(bb.height/2+1)*Math.abs(Math.sin(rr));
     items.push({hl:hl,lab:lab,bb:bb,halfW:halfW,mp:mp,px:px,py:py,anchor:t.hasEle&&state.labelMode==='profile'?[px,py]:mp});
@@ -842,7 +874,7 @@ function wrapName(name,hl){
 
 function updateCaption(){
   var F=fmt(), txt;
-  if(F.print){var px=Math.round(F.mm/25.4*300);txt='Vorschau '+F.mm+' × '+F.mm+' mm, PNG-Export '+de(px)+' × '+de(px)+' px';}
+  if(F.print){var px=Math.round(F.mmW/25.4*300), py=Math.round(F.mmH/25.4*300);txt='Vorschau '+de(F.mmW)+' × '+de(F.mmH)+' mm, PNG-Export '+de(px)+' × '+de(py)+' px';}
   else{txt='Vorschau '+F.name+', PNG-Export '+de(F.px[0])+' × '+de(F.px[1])+' px';}
   $('#caption').textContent=txt;
 }
@@ -1195,8 +1227,30 @@ function bindSeg(id,attr,onPick){
 Array.prototype.forEach.call(document.querySelectorAll('.fmtseg'),function(seg){
   seg.addEventListener('click',function(e){
     var b=e.target.closest('button'); if(!b){return;}
-    state.fmt=b.getAttribute('data-fmt'); syncMapUi(); applyFormat(); render();
+    state.fmt=b.getAttribute('data-fmt'); applyFormatDefaults(state.fmt); syncMapUi(); applyFormat(); render();
   });
+});
+function applyFormatDefaults(key){
+  var compact=key==='c100';
+  state.hlFontSize=compact?90:100; $('#hlFont').value=state.hlFontSize; $('#hlFontOut').textContent=state.hlFontSize+' %';
+  state.labelGap=compact?4:9; $('#gap').value=state.labelGap; $('#gapOut').textContent=de(state.labelGap,1);
+  state.plates=!compact; $('#optPlates').checked=state.plates;
+  state.colors.statLabel=compact?state.colors.statValue:mixHex(state.colors.bg,state.colors.ink,0.68);
+  state.map.op=compact?65:70; $('#mapOp').value=state.map.op; $('#mapOpOut').textContent=state.map.op+' %';
+  syncColors();
+}
+function refreshPrintFormat(){syncMapUi();applyFormat();render();}
+['customWidth','customHeight'].forEach(function(id){
+  $('#'+id).addEventListener('input',function(e){
+    var v=+e.target.value;
+    if(!isFinite(v)){return;}
+    v=clamp(v,50,1000); state[id==='customWidth'?'customWidth':'customHeight']=v;
+    if(state.fmt==='custom'){refreshPrintFormat();}
+  });
+});
+$('#printBleed').addEventListener('input',function(e){
+  var v=+e.target.value; if(!isFinite(v)){return;}
+  state.printBleedMm=clamp(v,0,10); refreshPrintFormat();
 });
 $('#optSafe').addEventListener('change',function(e){state.safe=e.target.checked;render();});
 
@@ -1213,6 +1267,8 @@ function renderPresets(){
 function syncColors(){
   var c=state.colors;
   $('#cBg').value=c.bg; $('#cInk').value=c.ink; $('#cRoute').value=c.route;
+  $('#cProfile').value=c.profile||c.ink; $('#cHighlight').value=c.highlight||c.ink;
+  $('#cStatValue').value=c.statValue||c.ink; $('#cStatLabel').value=c.statLabel||mixHex(c.bg,c.ink,0.68);
   Array.prototype.forEach.call($('#presets').children,function(b){
     var p=PRESETS[+b.dataset.i];
     var on=p.bg===c.bg.toLowerCase()&&p.ink===c.ink.toLowerCase()&&p.route===c.route.toLowerCase();
@@ -1226,10 +1282,10 @@ function syncColors(){
 $('#presets').addEventListener('click',function(e){
   var b=e.target.closest('.preset'); if(!b){return;}
   var p=PRESETS[+b.dataset.i];
-  state.colors={bg:p.bg,ink:p.ink,route:p.route};
+  state.colors={bg:p.bg,ink:p.ink,route:p.route,profile:p.ink,highlight:p.ink,statValue:p.ink,statLabel:mixHex(p.bg,p.ink,0.68)};
   syncColors(); render();
 });
-[['#cBg','bg'],['#cInk','ink'],['#cRoute','route']].forEach(function(pair){
+[['#cBg','bg'],['#cInk','ink'],['#cRoute','route'],['#cProfile','profile'],['#cHighlight','highlight'],['#cStatValue','statValue'],['#cStatLabel','statLabel']].forEach(function(pair){
   $(pair[0]).addEventListener('input',function(e){
     state.colors[pair[1]]=e.target.value; syncColors(); render();
   });
@@ -1256,7 +1312,7 @@ function exportSVGString(wpx,hpx){
 }
 function slug(){
   var s=(state.title||'wanderung').toLowerCase().replace(/[^a-z0-9äöüß]+/g,'-').replace(/^-+|-+$/g,'');
-  var F=fmt();return (s||'wanderung')+'-'+(F.print?F.mm+'mm':F.tag);
+  var F=fmt();return (s||'wanderung')+'-'+(F.print?F.mmW+'x'+F.mmH+'mm':F.tag);
 }
 async function saveFile(name,data){
   if(downloads){
@@ -1271,7 +1327,7 @@ async function saveFile(name,data){
 }
 $('#expSvg').addEventListener('click',function(){
   if(!state.track){say('Bitte zuerst eine Route laden.');return;}
-  var F=fmt(), xml=F.print?exportSVGString(F.mm+'mm',F.mm+'mm'):exportSVGString(F.px[0],F.px[1]);
+  var F=fmt(), xml=F.print?exportSVGString(F.mmW+'mm',F.mmH+'mm'):exportSVGString(F.px[0],F.px[1]);
   saveFile(slug()+'.svg',new Blob([xml],{type:'image/svg+xml'}));
 });
 // renders the current poster to a PNG at its export size (300 dpi for print formats, pixel size for social formats)
@@ -1309,7 +1365,7 @@ async function pngAtDpi(blob,dpi){
   return new Blob([input.subarray(0,8)].concat(chunks),{type:'image/png'});
 }
 async function renderPngBlob(){
-  var F=fmt(), pw=F.print?Math.round(F.mm/25.4*300):F.px[0], ph=F.print?pw:F.px[1];
+  var F=fmt(), pw=F.print?Math.round(F.mmW/25.4*300):F.px[0], ph=F.print?Math.round(F.mmH/25.4*300):F.px[1];
   var xml=exportSVGString(pw,ph);
   var img=new Image();
   await new Promise(function(res,rej){img.onload=res;img.onerror=rej;img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);});

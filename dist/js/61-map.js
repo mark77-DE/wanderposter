@@ -40,7 +40,7 @@ function tileRange(ext,z){
   return {tx0:clamp(Math.floor(a[0]/256),0,n),tx1:clamp(Math.floor(b[0]/256),0,n),ty0:clamp(Math.floor(a[1]/256),0,n),ty1:clamp(Math.floor(b[1]/256),0,n),a:a,b:b};
 }
 function pickZoom(geo,maxZ){
-  var F=fmt(), full=F.print?Math.round(F.mm/25.4*300):F.px[0];
+  var F=fmt(), full=F.print?Math.round(F.mmW/25.4*300):F.px[0];
   var target=full*(state.map.ext==='all'?100:W)/100;               // pixels the region will have in the export
   var ex=regionExtent(geo,0), wide=ex.X1-ex.X0, want=regionExtent(geo,0.15), z;
   for(z=5;z<maxZ;z++){

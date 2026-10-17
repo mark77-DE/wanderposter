@@ -30,7 +30,11 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 .caption{margin:0;color:var(--muted);font-size:13px;text-align:center}
 .stage.drop{outline:2px dashed var(--accent);outline-offset:-8px}
 
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px}
+.panel{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px}
+.panel>.group{order:5}
+.panel>#routeGroup{order:1}
+.panel>#highlightsGroup{order:2}
+.panel>#customizeGroup{order:3}
 .panel h1{font-size:20px;margin:0 0 4px;font-weight:650}
 .panel .lead{margin:0 0 6px;color:var(--muted);font-size:13.5px}
 .group{border-top:1px solid var(--line);padding:14px 0 16px}
@@ -38,7 +42,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 .group h2{font-size:15px;margin:0 0 10px;font-weight:650}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:13px;color:var(--muted)}
-.field input[type=text],.field input[type=date]{font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:.5rem .65rem;width:100%;min-width:0}
+.field input[type=text],.field input[type=date],.field input[type=number]{font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:.5rem .65rem;width:100%;min-width:0}
 .field input:focus-visible,.btn:focus-visible,.seg button:focus-visible,.hl-card input:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;cursor:pointer}
 .btn:hover{border-color:var(--muted)}

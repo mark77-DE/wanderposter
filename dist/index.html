@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Wander-Poster">
-<link rel="stylesheet" href="css/style.css?v=20261015215839">
+<link rel="stylesheet" href="css/style.css?v=20261017120851">
 </head>
 <body>
 <div class="app">
@@ -26,7 +26,7 @@
     <h1>Wander-Poster</h1>
     <p class="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
 
-    <div class="group">
+    <div class="group" id="routeGroup">
       <h2>Route</h2>
       <div class="row">
         <label class="btn primary" for="file">GPX-Datei wählen</label>
@@ -45,13 +45,22 @@
       <label class="field">Datum<input type="date" id="date"></label>
     </div>
 
-    <div class="group">
-      <h2>Format</h2>
-      <p class="label-line" style="margin-top:0">Leinwand (quadratisch)</p>
-      <div class="seg fmtseg" role="group" aria-label="Leinwandgröße">
-        <button type="button" data-fmt="c100" aria-pressed="false">100 mm</button>
-        <button type="button" data-fmt="c150" aria-pressed="true">150 mm</button>
-        <button type="button" data-fmt="c200" aria-pressed="false">200 mm</button>
+    <div class="group" id="customizeGroup">
+      <h2>Farben und Größen anpassen</h2>
+      <div id="printOptions">
+        <p class="label-line" style="margin-top:0">Leinwandformat</p>
+        <div class="seg fmtseg" role="group" aria-label="Leinwandgröße">
+          <button type="button" data-fmt="c100" aria-pressed="false">100 × 100</button>
+          <button type="button" data-fmt="c150" aria-pressed="true">150 × 150</button>
+          <button type="button" data-fmt="c200" aria-pressed="false">200 × 200</button>
+          <button type="button" data-fmt="custom" aria-pressed="false">Frei</button>
+        </div>
+        <div class="row" id="customSize" hidden>
+          <label class="field" style="flex:1;margin:10px 0 0">Breite (mm)<input type="number" id="customWidth" min="50" max="1000" step="1" value="100"></label>
+          <label class="field" style="flex:1;margin:10px 0 0">Höhe (mm)<input type="number" id="customHeight" min="50" max="1000" step="1" value="100"></label>
+        </div>
+        <label class="field" style="margin-top:10px">Druckzugabe je Seite (mm)<input type="number" id="printBleed" min="0" max="10" step="0.5" value="0"></label>
+        <p class="hint">Die Zugabe kommt an jeder Seite hinzu: 100 × 100 mm mit 2 mm je Seite ergibt 104 × 104 mm.</p>
       </div>
       <p class="label-line">Social Media</p>
       <div class="seg fmtseg" role="group" aria-label="Social-Media-Format">
@@ -67,6 +76,10 @@
         <label class="color">Hintergrund<input type="color" id="cBg"></label>
         <label class="color">Schrift und Linien<input type="color" id="cInk"></label>
         <label class="color">Route<input type="color" id="cRoute"></label>
+        <label class="color">Höhenprofil<input type="color" id="cProfile"></label>
+        <label class="color">Highlight-Labels<input type="color" id="cHighlight"></label>
+        <label class="color">Statistikwerte<input type="color" id="cStatValue"></label>
+        <label class="color">Statistiklabels<input type="color" id="cStatLabel"></label>
       </div>
       <p class="hint" id="contrastHint" style="color:var(--accent)"></p>
       <label class="check"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
@@ -153,8 +166,8 @@
       </div>
     </div>
 
-    <div class="group">
-      <h2>Highlights</h2>
+    <div class="group" id="highlightsGroup">
+      <h2>Highlights suchen</h2>
       <div class="row">
         <button class="btn" id="addHl" type="button" aria-pressed="false">Highlight setzen</button>
         <button class="btn" id="peaks" type="button">Gipfel vorschlagen</button>
@@ -220,19 +233,19 @@
 
 
 
-<script src="js/00-fonts.js?v=20261015215839"></script>
-<script src="js/10-core.js?v=20261015215839"></script>
-<script src="js/20-track.js?v=20261015215839"></script>
-<script src="js/30-geometry.js?v=20261015215839"></script>
-<script src="js/31-render.js?v=20261015215839"></script>
-<script src="js/40-highlights.js?v=20261015215839"></script>
-<script src="js/50-osm.js?v=20261015215839"></script>
-<script src="js/60-background.js?v=20261015215839"></script>
-<script src="js/61-map.js?v=20261015215839"></script>
-<script src="js/70-interaction.js?v=20261015215839"></script>
-<script src="js/80-controls.js?v=20261015215839"></script>
-<script src="js/90-export.js?v=20261015215839"></script>
-<script src="js/98-start.js?v=20261015215839"></script>
-<script src="js/99-pwa.js?v=20261015215839"></script>
+<script src="js/00-fonts.js?v=20261017120851"></script>
+<script src="js/10-core.js?v=20261017120851"></script>
+<script src="js/20-track.js?v=20261017120851"></script>
+<script src="js/30-geometry.js?v=20261017120851"></script>
+<script src="js/31-render.js?v=20261017120851"></script>
+<script src="js/40-highlights.js?v=20261017120851"></script>
+<script src="js/50-osm.js?v=20261017120851"></script>
+<script src="js/60-background.js?v=20261017120851"></script>
+<script src="js/61-map.js?v=20261017120851"></script>
+<script src="js/70-interaction.js?v=20261017120851"></script>
+<script src="js/80-controls.js?v=20261017120851"></script>
+<script src="js/90-export.js?v=20261017120851"></script>
+<script src="js/98-start.js?v=20261017120851"></script>
+<script src="js/99-pwa.js?v=20261017120851"></script>
 </body>
 </html>

@@ -19,7 +19,7 @@ function exportSVGString(wpx,hpx){
 }
 function slug(){
   var s=(state.title||'wanderung').toLowerCase().replace(/[^a-z0-9äöüß]+/g,'-').replace(/^-+|-+$/g,'');
-  var F=fmt();return (s||'wanderung')+'-'+(F.print?F.mm+'mm':F.tag);
+  var F=fmt();return (s||'wanderung')+'-'+(F.print?F.mmW+'x'+F.mmH+'mm':F.tag);
 }
 async function saveFile(name,data){
   if(downloads){
@@ -34,7 +34,7 @@ async function saveFile(name,data){
 }
 $('#expSvg').addEventListener('click',function(){
   if(!state.track){say('Bitte zuerst eine Route laden.');return;}
-  var F=fmt(), xml=F.print?exportSVGString(F.mm+'mm',F.mm+'mm'):exportSVGString(F.px[0],F.px[1]);
+  var F=fmt(), xml=F.print?exportSVGString(F.mmW+'mm',F.mmH+'mm'):exportSVGString(F.px[0],F.px[1]);
   saveFile(slug()+'.svg',new Blob([xml],{type:'image/svg+xml'}));
 });
 // renders the current poster to a PNG at its export size (300 dpi for print formats, pixel size for social formats)
@@ -72,7 +72,7 @@ async function pngAtDpi(blob,dpi){
   return new Blob([input.subarray(0,8)].concat(chunks),{type:'image/png'});
 }
 async function renderPngBlob(){
-  var F=fmt(), pw=F.print?Math.round(F.mm/25.4*300):F.px[0], ph=F.print?pw:F.px[1];
+  var F=fmt(), pw=F.print?Math.round(F.mmW/25.4*300):F.px[0], ph=F.print?Math.round(F.mmH/25.4*300):F.px[1];
   var xml=exportSVGString(pw,ph);
   var img=new Image();
   await new Promise(function(res,rej){img.onload=res;img.onerror=rej;img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);});
