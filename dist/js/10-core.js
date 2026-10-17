@@ -5,7 +5,7 @@ var M=7, W=86;                       // side margin and usable width in poster u
 var LAY={titleY:12, regionY:9.1, dateY:12, ruleY:15.6, mapT:19.2, mapB:56, profT:75, profB:86, axisY:89.3, statY:94.6};
 var TITLE_FS=6.8;
 var PRESETS=[
-  {name:'Hell',  bg:'#e8ece6', ink:'#1e3530', route:'#c4392d'},
+  {name:'Hell',  bg:'#ffffff', ink:'#1e3530', route:'#c4392d'},
   {name:'Dunkel',bg:'#1b2b2a', ink:'#e6ebe3', route:'#ff6b4a'},
   {name:'Sand',  bg:'#efe6d8', ink:'#3b2f26', route:'#b4532a'},
   {name:'Nacht', bg:'#14213d', ink:'#f1ede4', route:'#fca311'},
@@ -38,9 +38,9 @@ var today=new Date();
 var isoToday=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
 
 var state={
-  track:null, title:'Brocken-Runde', region:'Harz', date:isoToday,
-  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#e8ece6',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:false,moving:false}, statsFontSize:130, plates:true, plateOpacity:94,
-  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, mapB:LAY.mapB
+  track:null, posterMode:'route', vacationTracks:[], nextVacationId:1, vacationStats:{tours:true,ascent:true,days:true,longest:true,highest:true,average:true,elapsed:true,moving:true}, vacationStatOrder:['tours','ascent','longest','moving','days','highest','average','elapsed'], title:'Brocken-Runde', region:'Harz', date:isoToday,
+  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
+  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
 };
 
 // ---------- Formats ----------

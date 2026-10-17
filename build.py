@@ -22,12 +22,12 @@ BUILD = time.strftime("%Y%m%d%H%M%S")
 # order matters: later files use things defined by earlier ones
 JS_FULL = [
     "00-fonts", "10-core", "20-track", "30-geometry", "31-render", "40-highlights",
-    "50-osm", "60-background", "61-map", "70-interaction", "80-controls", "90-export", "98-start",
+    "50-osm", "55-vacation", "60-background", "61-map", "70-interaction", "80-controls", "90-export", "98-start",
 ]
 # without the features that talk to other servers (stubs take their place)
 JS_LITE = [
     "00-fonts", "10-core", "20-track", "30-geometry", "31-render", "40-highlights",
-    "45-stubs", "60-background", "70-interaction", "80-controls", "90-export", "98-start",
+    "45-stubs", "55-vacation", "60-background", "70-interaction", "80-controls", "90-export", "98-start",
 ]
 
 

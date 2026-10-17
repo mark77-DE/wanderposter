@@ -63,12 +63,18 @@ function bindSeg(id,attr,onPick){
 Array.prototype.forEach.call(document.querySelectorAll('.fmtseg'),function(seg){
   seg.addEventListener('click',function(e){
     var b=e.target.closest('button'); if(!b){return;}
-    state.fmt=b.getAttribute('data-fmt'); applyFormatDefaults(state.fmt); syncMapUi(); applyFormat(); render();
+    var previousFormat=state.fmt;
+    state.fmt=b.getAttribute('data-fmt'); applyFormatDefaults(state.fmt,previousFormat); syncColors(); syncMapUi(); applyFormat(); render();
   });
 });
-function applyFormatDefaults(key){
+function applyFormatDefaults(key,previousKey){
   var compact=key==='c100';
+  var nextFormat=FORMATS[key],oldFormat=FORMATS[previousKey];
+  if(nextFormat&&nextFormat.print&&(!oldFormat||!oldFormat.print)){state.colors.bg='#ffffff';}
   state.hlFontSize=compact?90:100; $('#hlFont').value=state.hlFontSize; $('#hlFontOut').textContent=state.hlFontSize+' %';
+  state.vacTextSize=100; $('#vacTextSize').value=100; $('#vacTextSizeOut').textContent='100 %';
+  state.vacLabelSize=100; $('#vacLabelSize').value=100; $('#vacLabelSizeOut').textContent='100 %';
+  state.vacValueSize=100; $('#vacValueSize').value=100; $('#vacValueSizeOut').textContent='100 %';
   state.labelGap=compact?4:9; $('#gap').value=state.labelGap; $('#gapOut').textContent=de(state.labelGap,1);
   state.plates=!compact; $('#optPlates').checked=state.plates;
   state.colors.statLabel=compact?state.colors.statValue:mixHex(state.colors.bg,state.colors.ink,0.68);
@@ -112,8 +118,14 @@ function syncColors(){
   });
   var hint='';
   if(contrast(c.ink,c.bg)<4.5){hint='Schrift und Hintergrund haben wenig Kontrast.';}
-  else if(contrast(c.route,c.bg)<3){hint='Die Route hebt sich kaum vom Hintergrund ab.';}
+  else if(contrast(c.route,c.bg)<3){hint=state.posterMode==='vacation'?'Die Balken heben sich kaum vom Hintergrund ab.':'Die Route hebt sich kaum vom Hintergrund ab.';}
   $('#contrastHint').textContent=hint;
+}
+function syncColorMode(){
+  var vacation=state.posterMode==='vacation';
+  $('#colorRouteLabel').textContent=vacation?'Balken':'Route';
+  $('#colorProfileRow').hidden=vacation;
+  $('#colorHighlightRow').hidden=vacation;
 }
 $('#presets').addEventListener('click',function(e){
   var b=e.target.closest('.preset'); if(!b){return;}
@@ -126,4 +138,4 @@ $('#presets').addEventListener('click',function(e){
     state.colors[pair[1]]=e.target.value; syncColors(); render();
   });
 });
-renderPresets(); syncColors();
+renderPresets(); syncColors(); syncColorMode();

@@ -21,6 +21,7 @@ function flagSVG(x,y,type,pal){
 
 // ---------- Rendering ----------
 function render(){
+  if(state.posterMode==='vacation'){renderVacationPoster();updateCaption();return;}
   var pal=palette(), t=state.track, geo=geometry(), h='';
   h+='<rect width="100" height="'+f(fmt().H)+'" fill="'+pal.bg+'"/>';
   h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Titel')+'</text>';

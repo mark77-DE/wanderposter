@@ -40,10 +40,14 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 .panel{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px}
 .panel>.group{order:5}
 .panel>#routeGroup{order:1}
+.panel>#vacationGroup{order:1.5}
 .panel>#highlightsGroup{order:2}
 .panel>#customizeGroup{order:3}
 .panel h1{font-size:20px;margin:0 0 4px;font-weight:650}
 .panel .lead{margin:0 0 6px;color:var(--muted);font-size:13.5px}
+.mode-tabs{display:flex;gap:8px;margin:8px 0 0}
+.mode-tabs .btn{flex:1}
+.mode-tabs .btn[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .group{border-top:1px solid var(--line);padding:14px 0 16px}
 .group:first-of-type{border-top:0}
 .group h2{font-size:15px;margin:0 0 10px;font-weight:650}
@@ -67,6 +71,19 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 #tinfo{color:var(--muted);font-size:13px;margin:8px 0 0}
 
 #hlist{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+#vacationList{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.vac-stat-options{display:flex;flex-direction:column;gap:3px}
+.vac-stat-option{display:grid;grid-template-columns:24px 1fr;align-items:center;border-radius:6px}
+.vac-stat-option .check{margin-top:0}
+.vac-drag{display:grid;place-items:center;height:28px;color:var(--muted);cursor:grab;user-select:none;touch-action:none}
+.vac-drag:active{cursor:grabbing}
+.vac-stat-option.drag-over{outline:1px dashed var(--accent);background:var(--field)}
+.vac-stat-option.dragging{opacity:.45}
+.vac-item{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:9px;padding:7px 8px;background:var(--field)}
+.vac-file{display:flex;gap:8px;align-items:flex-start;min-width:0;font-size:13px}
+.vac-file input{margin-top:4px;accent-color:var(--accent)}
+.vac-file-info{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
+.vac-file-info small{color:var(--muted);font-size:12px}
 .hl-card{display:grid;grid-template-columns:28px 1fr auto;gap:6px 8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--field)}
 .badge{width:24px;height:24px;border-radius:50%;background:var(--text);color:var(--bg);display:grid;place-items:center;font-size:12px;font-weight:650}
 .hl-card input[type=text]{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:.35rem .5rem;min-width:0}
@@ -127,7 +144,11 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 
   <aside class="panel">
     <h1>Wander-Poster</h1>
-    <p class="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
+    <p class="lead" id="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
+    <div class="mode-tabs" role="group" aria-label="Posterart">
+      <button class="btn" id="routeMode" type="button" aria-pressed="true">Routenposter</button>
+      <button class="btn" id="vacationMode" type="button" aria-pressed="false">Urlaubsstatistik</button>
+    </div>
 
     <div class="group" id="routeGroup">
       <h2>Route</h2>
@@ -141,11 +162,49 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
       <p id="msg" role="status" aria-live="polite"></p>
     </div>
 
-    <div class="group">
+    <div class="group" id="textGroup">
       <h2>Text</h2>
       <label class="field">Titel<input type="text" id="title" autocomplete="off" placeholder="z. B. Brocken"></label>
-      <label class="field">Region<input type="text" id="region" autocomplete="off" placeholder="z. B. Harz"></label>
-      <label class="field">Datum<input type="date" id="date"></label>
+      <label class="field" id="regionField">Region<input type="text" id="region" autocomplete="off" placeholder="z. B. Harz"></label>
+      <label class="field" id="dateField">Datum<input type="date" id="date"></label>
+    </div>
+
+    <div class="group" id="vacationGroup" hidden>
+      <h2>Urlaubsstatistik</h2>
+      <div class="row">
+        <label class="btn primary" for="vacationFiles">GPX-Dateien wählen</label>
+        <input type="file" id="vacationFiles" accept=".gpx,application/gpx+xml,application/xml,text/xml" multiple hidden>
+        <button class="btn small" id="clearVacation" type="button">Alle entfernen</button>
+      </div>
+      <p class="hint">Wähle die GPX-Touren des Urlaubs aus. Die Statistik fasst sie zusammen; Karte und Routen werden nicht dargestellt.</p>
+      <p class="hint" id="vacationMsg" role="status" aria-live="polite"></p>
+      <div id="vacationList"></div>
+      <p class="label-line">Kennzahlen im Poster</p>
+      <div class="vac-stat-options" id="vacationStatOptions">
+        <div class="vac-stat-option" data-vac-stat-item="tours"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Touren sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="tours" checked> Touren</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="ascent"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Höhenmeter sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="ascent" checked> Höhenmeter</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="days"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Wandertage sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="days" checked> Wandertage</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="longest"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Längste Tour sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="longest" checked> Längste Tour</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="highest"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Höchster Punkt sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="highest" checked> Höchster Punkt</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="average"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Durchschnitt je Tour sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="average" checked> Ø je Tour</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="elapsed"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Gesamtzeit sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="elapsed" checked> Gesamtzeit</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="moving"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Bewegungszeit sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="moving" checked> Bewegungszeit</label></div>
+      </div>
+      <div class="slider">
+        <label for="vacTextSize">Textgröße unterhalb der Linie</label>
+        <input type="range" id="vacTextSize" min="70" max="160" step="5" value="100">
+        <output id="vacTextSizeOut">100 %</output>
+      </div>
+      <div class="slider">
+        <label for="vacLabelSize">Größe der Labels</label>
+        <input type="range" id="vacLabelSize" min="70" max="160" step="5" value="100">
+        <output id="vacLabelSizeOut">100 %</output>
+      </div>
+      <div class="slider">
+        <label for="vacValueSize">Größe der Kilometerwerte über den Balken</label>
+        <input type="range" id="vacValueSize" min="70" max="160" step="5" value="100">
+        <output id="vacValueSizeOut">100 %</output>
+      </div>
     </div>
 
     <div class="group" id="customizeGroup">
@@ -178,22 +237,22 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
       <div class="colors">
         <label class="color">Hintergrund<input type="color" id="cBg"></label>
         <label class="color">Schrift und Linien<input type="color" id="cInk"></label>
-        <label class="color">Route<input type="color" id="cRoute"></label>
-        <label class="color">Höhenprofil<input type="color" id="cProfile"></label>
-        <label class="color">Highlight-Labels<input type="color" id="cHighlight"></label>
+        <label class="color"><span id="colorRouteLabel">Route</span><input type="color" id="cRoute"></label>
+        <label class="color" id="colorProfileRow"><span>Höhenprofil</span><input type="color" id="cProfile"></label>
+        <label class="color" id="colorHighlightRow"><span>Highlight-Labels</span><input type="color" id="cHighlight"></label>
         <label class="color">Statistikwerte<input type="color" id="cStatValue"></label>
         <label class="color">Statistiklabels<input type="color" id="cStatLabel"></label>
       </div>
       <p class="hint" id="contrastHint" style="color:var(--accent)"></p>
-      <label class="check"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
-      <label class="check"><input type="checkbox" id="optStats" checked> Kennzahlen unten anzeigen</label>
+      <label class="check" id="optEleRow"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
+      <label class="check" id="optStatsRow"><input type="checkbox" id="optStats" checked> Kennzahlen unten anzeigen</label>
       <div id="statsOptions" style="margin-left:20px">
         <label class="check"><input type="checkbox" data-stat="distance" checked> Strecke</label>
         <label class="check"><input type="checkbox" data-stat="ascent" checked> Höhenmeter (HM)</label>
         <label class="check"><input type="checkbox" data-stat="max" checked> Höchster Punkt</label>
         <label class="check"><input type="checkbox" data-stat="min" checked> Tiefster Punkt</label>
-        <label class="check"><input type="checkbox" data-stat="elapsed"> Gesamtzeit</label>
-        <label class="check"><input type="checkbox" data-stat="moving"> Zeit in Bewegung (geschätzt)</label>
+        <label class="check"><input type="checkbox" data-stat="elapsed" checked> Gesamtzeit</label>
+        <label class="check"><input type="checkbox" data-stat="moving" checked> Zeit in Bewegung (geschätzt)</label>
         <p class="hint">Geschätzt aus GPS-Zeitstempeln; Pausen und Lücken über 5 Minuten zählen nicht als Bewegungszeit.</p>
       </div>
       <div class="slider">
@@ -201,15 +260,15 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
         <input type="range" id="statsFont" min="80" max="180" step="5" value="130">
         <output id="statsFontOut">130 %</output>
       </div>
-      <label class="check"><input type="checkbox" id="optPlates" checked> Beschriftungen hinterlegen</label>
-      <div class="slider">
+      <label class="check" id="optPlatesRow"><input type="checkbox" id="optPlates" checked> Beschriftungen hinterlegen</label>
+      <div class="slider" id="plateOpacityRow">
         <label for="plateOpacity">Transparenz der Label-Hintergründe</label>
         <input type="range" id="plateOpacity" min="0" max="100" step="1" value="94">
         <output id="plateOpacityOut">94 %</output>
       </div>
     </div>
 
-    <div class="group">
+    <div class="group" id="backgroundGroup">
       <h2>Hintergrundbild</h2>
       <div class="row">
         <label class="btn" for="bgFile">Bild wählen</label>
@@ -237,7 +296,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
       </div>
     </div>
 
-    <div class="group">
+    <div class="group" id="mapGroup">
       <h2>Kartenhintergrund</h2>
       <label class="field">Stil
         <select id="mapStyle">
@@ -310,7 +369,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
       <div id="hlist"></div>
     </div>
 
-    <div class="group">
+    <div class="group" id="exportGroup">
       <h2>Export</h2>
       <div class="row">
         <button class="btn primary" id="expPng" type="button">PNG (300 dpi)</button>
@@ -355,7 +414,7 @@ var M=7, W=86;                       // side margin and usable width in poster u
 var LAY={titleY:12, regionY:9.1, dateY:12, ruleY:15.6, mapT:19.2, mapB:56, profT:75, profB:86, axisY:89.3, statY:94.6};
 var TITLE_FS=6.8;
 var PRESETS=[
-  {name:'Hell',  bg:'#e8ece6', ink:'#1e3530', route:'#c4392d'},
+  {name:'Hell',  bg:'#ffffff', ink:'#1e3530', route:'#c4392d'},
   {name:'Dunkel',bg:'#1b2b2a', ink:'#e6ebe3', route:'#ff6b4a'},
   {name:'Sand',  bg:'#efe6d8', ink:'#3b2f26', route:'#b4532a'},
   {name:'Nacht', bg:'#14213d', ink:'#f1ede4', route:'#fca311'},
@@ -388,9 +447,9 @@ var today=new Date();
 var isoToday=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
 
 var state={
-  track:null, title:'Brocken-Runde', region:'Harz', date:isoToday,
-  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#e8ece6',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:false,moving:false}, statsFontSize:130, plates:true, plateOpacity:94,
-  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, mapB:LAY.mapB
+  track:null, posterMode:'route', vacationTracks:[], nextVacationId:1, vacationStats:{tours:true,ascent:true,days:true,longest:true,highest:true,average:true,elapsed:true,moving:true}, vacationStatOrder:['tours','ascent','longest','moving','days','highest','average','elapsed'], title:'Brocken-Runde', region:'Harz', date:isoToday,
+  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
+  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
 };
 
 // ---------- Formats ----------
@@ -602,15 +661,24 @@ function geometry(){
   var bw=Math.max(maxX-minX,1), bh=Math.max(maxY-minY,1);
   var mh=state.mapB-LAY.mapT;
   var pad=mapPad();
-  var sc=Math.min((W-2*pad)/bw,(mh-2*pad)/bh);
-  var ox=M+(W-bw*sc)/2, oy=LAY.mapT+(mh-bh*sc)/2;
-  function mapPt(p){return [ox+(p.px-minX)*sc, oy+(maxY-p.py)*sc];}
+  var scale=Math.min((W-2*pad)/bw,(mh-2*pad)/bh);
+  var ox=M+(W-bw*scale)/2, oy=LAY.mapT+(mh-bh*scale)/2;
+  var first=t.s[0],last=t.s[t.s.length-1];
+  var firstY=oy+(maxY-first.py)*scale,lastY=oy+(maxY-last.py)*scale;
+  var flagClearance=sc(6.2);
+  if(Math.min(firstY,lastY)-sc(5.2)<LAY.mapT+1){
+    var routeH=mh-flagClearance;
+    scale=Math.min((W-2*pad)/bw,(routeH-2*pad)/bh);
+    ox=M+(W-bw*scale)/2;
+    oy=LAY.mapT+flagClearance+(routeH-bh*scale)/2;
+  }
+  function mapPt(p){return [ox+(p.px-minX)*scale, oy+(maxY-p.py)*scale];}
   var e0=t.minE, e1=t.maxE;
   if(e1-e0<60){var c=(e0+e1)/2;e0=c-30;e1=c+30;}
   return {
     mapPt:mapPt,
     mp:t.s.map(mapPt),
-    minX:minX, maxY:maxY, ox:ox, oy:oy, sc:sc,
+    minX:minX, maxY:maxY, ox:ox, oy:oy, sc:scale,
     profX:function(d){return M+d/t.total*W;},
     profY:function(e){return LAY.profB-(e-e0)/(e1-e0)*(LAY.profB-LAY.profT);}
   };
@@ -653,6 +721,7 @@ function flagSVG(x,y,type,pal){
 
 // ---------- Rendering ----------
 function render(){
+  if(state.posterMode==='vacation'){renderVacationPoster();updateCaption();return;}
   var pal=palette(), t=state.track, geo=geometry(), h='';
   h+='<rect width="100" height="'+f(fmt().H)+'" fill="'+pal.bg+'"/>';
   h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Titel')+'</text>';
@@ -1147,6 +1216,217 @@ $('#osmAdd').addEventListener('click',function(){
   say(added?added+(added===1?' Highlight':' Highlights')+' übernommen.':'Nichts ausgewählt.');
 });
 
+// ---------- Multi-track vacation statistics poster ----------
+function vacationSelected(){return state.vacationTracks.filter(function(r){return r.track&&r.include;});}
+function vacationDateLabel(iso,options){
+  var p=iso.split('-');
+  return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('de-DE',options||{day:'2-digit',month:'2-digit'});
+}
+function vacationPeriod(rows){
+  var ds=rows.map(function(r){return r.track.date;}).filter(Boolean).sort();
+  if(!ds.length){return '';}
+  if(ds[0]===ds[ds.length-1]){return vacationDateLabel(ds[0],{day:'numeric',month:'long',year:'numeric'});}
+  return vacationDateLabel(ds[0],{day:'numeric',month:'short',year:'numeric'})+' – '+vacationDateLabel(ds[ds.length-1],{day:'numeric',month:'short',year:'numeric'});
+}
+function vacationSummary(rows){
+  var total=0,ascent=0,eleCount=0,elapsed=0,elapsedCount=0,moving=0,movingCount=0,longest=null,highest=null,dates={},daily={};
+  rows.forEach(function(r){
+    var t=r.track; total+=t.total;
+    if(!longest||t.total>longest.total){longest={name:r.name,total:t.total};}
+    if(t.hasEle){ascent+=t.ascent;eleCount++;if(!highest||t.maxE>highest.ele){highest={name:r.name,ele:t.maxE};}}
+    if(t.elapsed!=null){elapsed+=t.elapsed;elapsedCount++;}
+    if(t.movingTime!=null){moving+=t.movingTime;movingCount++;}
+    if(t.date){dates[t.date]=true;daily[t.date]=(daily[t.date]||0)+t.total;}
+  });
+  return {total:total,ascent:ascent,eleCount:eleCount,elapsed:elapsed,elapsedCount:elapsedCount,moving:moving,movingCount:movingCount,longest:longest,highest:highest,days:Object.keys(dates).length,daily:daily};
+}
+function vacationRenderList(){
+  var list=$('#vacationList'); list.innerHTML='';
+  var included=vacationSelected().length;
+  state.vacationTracks.forEach(function(r){
+    var row=document.createElement('div'); row.className='vac-item';
+    var label=document.createElement('label'); label.className='vac-file';
+    var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!r.include; cb.disabled=!r.track; cb.dataset.vacId=r.id;
+    var info=document.createElement('span'); info.className='vac-file-info';
+    var name=document.createElement('b'); name.textContent=r.name; info.appendChild(name);
+    var small=document.createElement('small');
+    small.textContent=r.track
+      ?de(r.track.total/1000,1)+' km'+(r.track.hasEle?', '+de(r.track.ascent)+' HM':'')+(r.track.date?', '+vacationDateLabel(r.track.date):', ohne Zeitstempel')
+      :'Fehler: '+r.error;
+    info.appendChild(small); label.appendChild(cb); label.appendChild(info); row.appendChild(label);
+    var remove=document.createElement('button'); remove.type='button'; remove.className='btn small'; remove.textContent='Entfernen'; remove.dataset.removeVac=r.id; row.appendChild(remove);
+    list.appendChild(row);
+  });
+  $('#vacationMsg').textContent=state.vacationTracks.length
+    ?included+' von '+state.vacationTracks.length+' Touren fließen in das Poster ein.'
+    :'Noch keine GPX-Dateien geladen.';
+}
+function vacationReadFile(file){
+  return new Promise(function(resolve){
+    var reader=new FileReader();
+    reader.onload=function(){
+      try{
+        var raw=parseGPX(String(reader.result)), track=buildTrack(raw);
+        resolve({id:state.nextVacationId++,name:file.name,track:track,include:true,error:''});
+      }catch(err){resolve({id:state.nextVacationId++,name:file.name,track:null,include:false,error:err.message||'Datei konnte nicht gelesen werden.'});}
+    };
+    reader.onerror=function(){resolve({id:state.nextVacationId++,name:file.name,track:null,include:false,error:'Datei konnte nicht gelesen werden.'});};
+    reader.readAsText(file);
+  });
+}
+$('#vacationFiles').addEventListener('change',async function(e){
+  var files=Array.prototype.slice.call(e.target.files||[]); e.target.value='';
+  if(!files.length){return;}
+  $('#vacationMsg').textContent=files.length+' Datei'+(files.length===1?' wird':'en werden')+' gelesen …';
+  var rows=await Promise.all(files.map(vacationReadFile));
+  state.vacationTracks=state.vacationTracks.concat(rows);
+  vacationRenderList(); render();
+});
+$('#vacationList').addEventListener('change',function(e){
+  var id=+e.target.dataset.vacId;
+  if(!id){return;}
+  var row=state.vacationTracks.filter(function(r){return r.id===id;})[0];
+  if(row){row.include=e.target.checked;vacationRenderList();render();}
+});
+$('#vacationList').addEventListener('click',function(e){
+  var id=+e.target.dataset.removeVac;
+  if(!id){return;}
+  state.vacationTracks=state.vacationTracks.filter(function(r){return r.id!==id;});
+  vacationRenderList();render();
+});
+$('#clearVacation').addEventListener('click',function(){state.vacationTracks=[];vacationRenderList();render();});
+$('#vacationStatOptions').addEventListener('change',function(e){
+  var key=e.target.dataset.vacStat;
+  if(!key){return;}
+  state.vacationStats[key]=e.target.checked; render();
+});
+function vacationSyncStatOptionOrder(){
+  var box=$('#vacationStatOptions'),items=Array.prototype.slice.call(box.querySelectorAll('.vac-stat-option'));
+  items.forEach(function(item){var input=item.querySelector('[data-vac-stat]');if(input){input.checked=!!state.vacationStats[input.dataset.vacStat];}});
+  state.vacationStatOrder.forEach(function(key){
+    var item=box.querySelector('[data-vac-stat-item="'+key+'"]');if(item){box.appendChild(item);}
+  });
+}
+$('#vacationStatOptions').addEventListener('dragstart',function(e){
+  var handle=e.target.closest('.vac-drag'),item=handle&&handle.closest('.vac-stat-option');
+  if(!item){e.preventDefault();return;}
+  e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',item.dataset.vacStatItem);item.classList.add('dragging');
+});
+$('#vacationStatOptions').addEventListener('dragover',function(e){
+  var target=e.target.closest('.vac-stat-option');if(!target){return;}
+  e.preventDefault();e.dataTransfer.dropEffect='move';target.classList.add('drag-over');
+});
+$('#vacationStatOptions').addEventListener('dragleave',function(e){
+  var target=e.target.closest('.vac-stat-option');if(target&&!target.contains(e.relatedTarget)){target.classList.remove('drag-over');}
+});
+$('#vacationStatOptions').addEventListener('drop',function(e){
+  var target=e.target.closest('.vac-stat-option'),source=e.dataTransfer.getData('text/plain');
+  if(!target||!source){return;}
+  e.preventDefault();
+  var order=state.vacationStatOrder.slice(),from=order.indexOf(source),to=order.indexOf(target.dataset.vacStatItem);
+  if(from<0||to<0||from===to){return;}
+  order.splice(from,1);order.splice(order.indexOf(target.dataset.vacStatItem),0,source);state.vacationStatOrder=order;
+  vacationSyncStatOptionOrder();render();
+});
+$('#vacationStatOptions').addEventListener('dragend',function(){
+  $('#vacationStatOptions').querySelectorAll('.dragging,.drag-over').forEach(function(item){item.classList.remove('dragging','drag-over');});
+});
+vacationSyncStatOptionOrder();
+$('#vacTextSize').addEventListener('input',function(e){state.vacTextSize=+e.target.value;$('#vacTextSizeOut').textContent=state.vacTextSize+' %';render();});
+$('#vacLabelSize').addEventListener('input',function(e){state.vacLabelSize=+e.target.value;$('#vacLabelSizeOut').textContent=state.vacLabelSize+' %';render();});
+$('#vacValueSize').addEventListener('input',function(e){state.vacValueSize=+e.target.value;$('#vacValueSizeOut').textContent=state.vacValueSize+' %';render();});
+
+function setPosterMode(mode){
+  var vacation=mode==='vacation'; state.posterMode=vacation?'vacation':'route';
+  $('#routeMode').setAttribute('aria-pressed',vacation?'false':'true');
+  $('#vacationMode').setAttribute('aria-pressed',vacation?'true':'false');
+  $('#lead').textContent=vacation
+    ?'Mehrere GPX-Touren zusammenfassen und als Urlaubsstatistik drucken.'
+    :'GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.';
+  $('#routeGroup').hidden=vacation; $('#vacationGroup').hidden=!vacation;
+  $('#statsFont').closest('.slider').hidden=vacation;
+  syncColorMode();
+  $('#highlightsGroup').hidden=vacation; $('#backgroundGroup').hidden=vacation; $('#mapGroup').hidden=vacation;
+  $('#dateField').hidden=vacation;
+  ['optEleRow','optStatsRow','statsOptions','optPlatesRow','plateOpacityRow'].forEach(function(id){$('#'+id).hidden=vacation;});
+  if(vacation&&state.title==='Brocken-Runde'){state.title='Urlaubsstatistik';$('#title').value=state.title;}
+  if(!vacation&&state.title==='Urlaubsstatistik'){state.title='Brocken-Runde';$('#title').value=state.title;}
+  vacationRenderList(); render();
+}
+$('#routeMode').addEventListener('click',function(){setPosterMode('route');});
+$('#vacationMode').addEventListener('click',function(){setPosterMode('vacation');});
+
+function vacationChartBins(daily){
+  var dates=Object.keys(daily).sort(), bins=[];
+  if(dates.length<=14){return dates.map(function(date){return {label:vacationDateLabel(date),value:daily[date]};});}
+  var size=Math.ceil(dates.length/12);
+  for(var i=0;i<dates.length;i+=size){
+    var total=0; dates.slice(i,i+size).forEach(function(date){total+=daily[date];});
+    bins.push({label:vacationDateLabel(dates[i]),value:total});
+  }
+  return bins;
+}
+function renderVacationPoster(){
+  var pal=palette(),rows=vacationSelected(),sum=vacationSummary(rows),F=fmt(),H=F.H,h='';
+  var compact=state.fmt==='c100'||(state.fmt==='custom'&&+state.customWidth===100&&+state.customHeight===100);
+  var baseScale=compact?1.1:1,textScale=baseScale*state.vacTextSize/100;
+  var labelScale=textScale*state.vacLabelSize/100*(compact?1.4:1);
+  var valueScale=textScale*state.vacValueSize/100*(compact?1.4:1);
+  h+='<rect width="100" height="'+f(H)+'" fill="'+pal.bg+'"/>';
+  h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Urlaubsstatistik')+'</text>';
+  h+='<text id="preg" x="'+(M+W)+'" y="'+f(LAY.dateY-sc(2.8)*1.1)+'" font-size="'+sc(2.8)+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';
+  h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+sc(2.8)+'" font-weight="500" text-anchor="end" fill="'+pal.muted+'">'+esc(vacationPeriod(rows))+'</text>';
+  h+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+LAY.ruleY+'" y2="'+LAY.ruleY+'" stroke="'+pal.ink+'" stroke-opacity=".3" stroke-width=".2"/>';
+  // The route poster reserves the lower half for elevation data; the vacation
+  // poster can use that space for a taller daily-distance chart.
+  var km=de(sum.total/1000,1)+' km', chartTop=LAY.mapT+20, base=LAY.profT-13;
+  h+='<text x="50" y="'+f(LAY.mapT+2.8)+'" text-anchor="middle" font-size="'+sc(2.1*labelScale)+'" font-weight="500" fill="'+pal.muted+'">GESAMTSTRECKE</text>';
+  h+='<text id="vac-total" x="50" y="'+f(LAY.mapT+12)+'" text-anchor="middle" font-size="'+sc(7.2*textScale)+'" font-weight="600" fill="'+pal.statValue+'">'+esc(km)+'</text>';
+  h+='<text x="50" y="'+f(chartTop)+'" text-anchor="middle" font-size="'+sc(1.8*labelScale)+'" font-weight="500" fill="'+pal.muted+'">Kilometer je Tour</text>';
+  var bins=vacationChartBins(sum.daily), maxBin=Math.max.apply(null,bins.map(function(b){return b.value;}));
+  if(bins.length){
+    h+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+base+'" y2="'+base+'" stroke="'+pal.ink+'" stroke-opacity=".55" stroke-width=".25"/>';
+    var cell=W/bins.length, bw=Math.min(5,cell*.58);
+    var chartReserve=sc(1.44*labelScale+2.7*valueScale+1), chartH=Math.max(3,base-chartTop-chartReserve);
+    bins.forEach(function(b,i){
+      var bh=maxBin?Math.max(.5,b.value/maxBin*chartH):0, x=M+cell*(i+.5)-bw/2;
+      h+='<rect x="'+f(x)+'" y="'+f(base-bh)+'" width="'+f(bw)+'" height="'+f(bh)+'" rx=".35" fill="'+pal.route+'"/>';
+      h+='<text x="'+f(M+cell*(i+.5))+'" y="'+f(base-bh-1.6*valueScale)+'" text-anchor="middle" font-size="'+sc(1.3*valueScale)+'" font-weight="600" fill="'+pal.statValue+'">'+de(b.value/1000,1)+'</text>';
+      h+='<text x="'+f(M+cell*(i+.5))+'" y="'+f(base+5)+'" text-anchor="middle" font-size="'+sc(1.3*labelScale)+'" fill="'+pal.muted+'">'+esc(b.label)+'</text>';
+    });
+  }else{
+    h+='<text x="50" y="'+f(chartTop+10)+'" text-anchor="middle" font-size="'+sc(2.2*textScale)+'" fill="'+pal.muted+'">'+(rows.length?'Keine Zeitstempel für die Tagesübersicht':'GPX-Dateien laden, um die Statistik zu sehen')+'</text>';
+  }
+  var stats=[
+    {key:'tours',v:String(rows.length),l:'Touren'},
+    {key:'ascent',v:sum.eleCount?de(sum.ascent)+' m':'—',l:'Höhenmeter'},
+    {key:'days',v:sum.days?String(sum.days):'—',l:'Tage'},
+    {key:'longest',v:sum.longest?de(sum.longest.total/1000,1)+' km':'—',l:'Längste Tour'},
+    {key:'highest',v:sum.highest?de(sum.highest.ele)+' m':'—',l:'Höchster Punkt'},
+    {key:'average',v:rows.length?de(sum.total/rows.length/1000,1)+' km':'—',l:'Ø je Tour'},
+    {key:'elapsed',v:sum.elapsedCount?formatDuration(sum.elapsed):'—',l:'Gesamtzeit'},
+    {key:'moving',v:sum.movingCount?formatDuration(sum.moving):'—',l:'Zeit in Bewegung'}
+  ].filter(function(s){return state.vacationStats[s.key];}).sort(function(a,b){return state.vacationStatOrder.indexOf(a.key)-state.vacationStatOrder.indexOf(b.key);});
+  var topTextGap=Math.max(0,LAY.titleY-titleFs()*.8);
+  var lowerLabelY=H-topTextGap-sc(1.35*labelScale)*.2;
+  var topLabelY=LAY.profT+6.7, statRows=Math.ceil(stats.length/4);
+  if(statRows){
+    for(var row=0;row<statRows;row++){
+      var rowLabelY=statRows===1?(topLabelY+lowerLabelY)/2:topLabelY+(lowerLabelY-topLabelY)*row/(statRows-1);
+      var rowStats=stats.slice(row*4,row*4+4), rowCenters=rowStats.map(function(s,col){return M+W*(col+.5)/rowStats.length;});
+      rowStats.forEach(function(s,col){
+        var valueY=rowLabelY-sc(2.7*textScale), fs=sc(2.5*textScale);
+        h+='<g class="vac-stat"><text x="'+f(rowCenters[col])+'" y="'+f(valueY)+'" text-anchor="middle" font-size="'+fs+'" font-weight="600" fill="'+pal.statValue+'">'+esc(s.v)+'</text><text x="'+f(rowCenters[col])+'" y="'+f(rowLabelY)+'" text-anchor="middle" font-size="'+sc(1.35*labelScale)+'" fill="'+pal.statLabel+'">'+esc(s.l)+'</text></g>';
+      });
+    }
+  }
+  svg.innerHTML=h;
+  var title=svg.querySelector('#ptitle');
+  if(title){var width=title.getComputedTextLength(), maxW=W-4;if(width>maxW){title.setAttribute('font-size',f(titleFs()*maxW/width));}}
+  var total=svg.querySelector('#vac-total');
+  if(total){var width2=total.getComputedTextLength(), maxW2=W-4;if(width2>maxW2){total.setAttribute('font-size',f(sc(7.2*textScale)*maxW2/width2));}}
+}
+
 // ---------- Background image ----------
 var XLINK='http://www.w3.org/1999/xlink';
 var bgEl=null, bgDrag=null;
@@ -1562,12 +1842,18 @@ function bindSeg(id,attr,onPick){
 Array.prototype.forEach.call(document.querySelectorAll('.fmtseg'),function(seg){
   seg.addEventListener('click',function(e){
     var b=e.target.closest('button'); if(!b){return;}
-    state.fmt=b.getAttribute('data-fmt'); applyFormatDefaults(state.fmt); syncMapUi(); applyFormat(); render();
+    var previousFormat=state.fmt;
+    state.fmt=b.getAttribute('data-fmt'); applyFormatDefaults(state.fmt,previousFormat); syncColors(); syncMapUi(); applyFormat(); render();
   });
 });
-function applyFormatDefaults(key){
+function applyFormatDefaults(key,previousKey){
   var compact=key==='c100';
+  var nextFormat=FORMATS[key],oldFormat=FORMATS[previousKey];
+  if(nextFormat&&nextFormat.print&&(!oldFormat||!oldFormat.print)){state.colors.bg='#ffffff';}
   state.hlFontSize=compact?90:100; $('#hlFont').value=state.hlFontSize; $('#hlFontOut').textContent=state.hlFontSize+' %';
+  state.vacTextSize=100; $('#vacTextSize').value=100; $('#vacTextSizeOut').textContent='100 %';
+  state.vacLabelSize=100; $('#vacLabelSize').value=100; $('#vacLabelSizeOut').textContent='100 %';
+  state.vacValueSize=100; $('#vacValueSize').value=100; $('#vacValueSizeOut').textContent='100 %';
   state.labelGap=compact?4:9; $('#gap').value=state.labelGap; $('#gapOut').textContent=de(state.labelGap,1);
   state.plates=!compact; $('#optPlates').checked=state.plates;
   state.colors.statLabel=compact?state.colors.statValue:mixHex(state.colors.bg,state.colors.ink,0.68);
@@ -1611,8 +1897,14 @@ function syncColors(){
   });
   var hint='';
   if(contrast(c.ink,c.bg)<4.5){hint='Schrift und Hintergrund haben wenig Kontrast.';}
-  else if(contrast(c.route,c.bg)<3){hint='Die Route hebt sich kaum vom Hintergrund ab.';}
+  else if(contrast(c.route,c.bg)<3){hint=state.posterMode==='vacation'?'Die Balken heben sich kaum vom Hintergrund ab.':'Die Route hebt sich kaum vom Hintergrund ab.';}
   $('#contrastHint').textContent=hint;
+}
+function syncColorMode(){
+  var vacation=state.posterMode==='vacation';
+  $('#colorRouteLabel').textContent=vacation?'Balken':'Route';
+  $('#colorProfileRow').hidden=vacation;
+  $('#colorHighlightRow').hidden=vacation;
 }
 $('#presets').addEventListener('click',function(e){
   var b=e.target.closest('.preset'); if(!b){return;}
@@ -1625,7 +1917,7 @@ $('#presets').addEventListener('click',function(e){
     state.colors[pair[1]]=e.target.value; syncColors(); render();
   });
 });
-renderPresets(); syncColors();
+renderPresets(); syncColors(); syncColorMode();
 
 // ---------- Export ----------
 var downloads=null;

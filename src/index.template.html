@@ -18,7 +18,11 @@
 
   <aside class="panel">
     <h1>Wander-Poster</h1>
-    <p class="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
+    <p class="lead" id="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
+    <div class="mode-tabs" role="group" aria-label="Posterart">
+      <button class="btn" id="routeMode" type="button" aria-pressed="true">Routenposter</button>
+      <button class="btn" id="vacationMode" type="button" aria-pressed="false">Urlaubsstatistik</button>
+    </div>
 
     <div class="group" id="routeGroup">
       <h2>Route</h2>
@@ -32,11 +36,49 @@
       <p id="msg" role="status" aria-live="polite"></p>
     </div>
 
-    <div class="group">
+    <div class="group" id="textGroup">
       <h2>Text</h2>
       <label class="field">Titel<input type="text" id="title" autocomplete="off" placeholder="z. B. Brocken"></label>
-      <label class="field">Region<input type="text" id="region" autocomplete="off" placeholder="z. B. Harz"></label>
-      <label class="field">Datum<input type="date" id="date"></label>
+      <label class="field" id="regionField">Region<input type="text" id="region" autocomplete="off" placeholder="z. B. Harz"></label>
+      <label class="field" id="dateField">Datum<input type="date" id="date"></label>
+    </div>
+
+    <div class="group" id="vacationGroup" hidden>
+      <h2>Urlaubsstatistik</h2>
+      <div class="row">
+        <label class="btn primary" for="vacationFiles">GPX-Dateien wählen</label>
+        <input type="file" id="vacationFiles" accept=".gpx,application/gpx+xml,application/xml,text/xml" multiple hidden>
+        <button class="btn small" id="clearVacation" type="button">Alle entfernen</button>
+      </div>
+      <p class="hint">Wähle die GPX-Touren des Urlaubs aus. Die Statistik fasst sie zusammen; Karte und Routen werden nicht dargestellt.</p>
+      <p class="hint" id="vacationMsg" role="status" aria-live="polite"></p>
+      <div id="vacationList"></div>
+      <p class="label-line">Kennzahlen im Poster</p>
+      <div class="vac-stat-options" id="vacationStatOptions">
+        <div class="vac-stat-option" data-vac-stat-item="tours"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Touren sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="tours" checked> Touren</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="ascent"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Höhenmeter sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="ascent" checked> Höhenmeter</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="days"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Wandertage sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="days" checked> Wandertage</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="longest"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Längste Tour sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="longest" checked> Längste Tour</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="highest"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Höchster Punkt sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="highest" checked> Höchster Punkt</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="average"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Durchschnitt je Tour sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="average" checked> Ø je Tour</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="elapsed"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Gesamtzeit sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="elapsed" checked> Gesamtzeit</label></div>
+        <div class="vac-stat-option" data-vac-stat-item="moving"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Bewegungszeit sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="moving" checked> Bewegungszeit</label></div>
+      </div>
+      <div class="slider">
+        <label for="vacTextSize">Textgröße unterhalb der Linie</label>
+        <input type="range" id="vacTextSize" min="70" max="160" step="5" value="100">
+        <output id="vacTextSizeOut">100 %</output>
+      </div>
+      <div class="slider">
+        <label for="vacLabelSize">Größe der Labels</label>
+        <input type="range" id="vacLabelSize" min="70" max="160" step="5" value="100">
+        <output id="vacLabelSizeOut">100 %</output>
+      </div>
+      <div class="slider">
+        <label for="vacValueSize">Größe der Kilometerwerte über den Balken</label>
+        <input type="range" id="vacValueSize" min="70" max="160" step="5" value="100">
+        <output id="vacValueSizeOut">100 %</output>
+      </div>
     </div>
 
     <div class="group" id="customizeGroup">
@@ -69,22 +111,22 @@
       <div class="colors">
         <label class="color">Hintergrund<input type="color" id="cBg"></label>
         <label class="color">Schrift und Linien<input type="color" id="cInk"></label>
-        <label class="color">Route<input type="color" id="cRoute"></label>
-        <label class="color">Höhenprofil<input type="color" id="cProfile"></label>
-        <label class="color">Highlight-Labels<input type="color" id="cHighlight"></label>
+        <label class="color"><span id="colorRouteLabel">Route</span><input type="color" id="cRoute"></label>
+        <label class="color" id="colorProfileRow"><span>Höhenprofil</span><input type="color" id="cProfile"></label>
+        <label class="color" id="colorHighlightRow"><span>Highlight-Labels</span><input type="color" id="cHighlight"></label>
         <label class="color">Statistikwerte<input type="color" id="cStatValue"></label>
         <label class="color">Statistiklabels<input type="color" id="cStatLabel"></label>
       </div>
       <p class="hint" id="contrastHint" style="color:var(--accent)"></p>
-      <label class="check"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
-      <label class="check"><input type="checkbox" id="optStats" checked> Kennzahlen unten anzeigen</label>
+      <label class="check" id="optEleRow"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
+      <label class="check" id="optStatsRow"><input type="checkbox" id="optStats" checked> Kennzahlen unten anzeigen</label>
       <div id="statsOptions" style="margin-left:20px">
         <label class="check"><input type="checkbox" data-stat="distance" checked> Strecke</label>
         <label class="check"><input type="checkbox" data-stat="ascent" checked> Höhenmeter (HM)</label>
         <label class="check"><input type="checkbox" data-stat="max" checked> Höchster Punkt</label>
         <label class="check"><input type="checkbox" data-stat="min" checked> Tiefster Punkt</label>
-        <label class="check"><input type="checkbox" data-stat="elapsed"> Gesamtzeit</label>
-        <label class="check"><input type="checkbox" data-stat="moving"> Zeit in Bewegung (geschätzt)</label>
+        <label class="check"><input type="checkbox" data-stat="elapsed" checked> Gesamtzeit</label>
+        <label class="check"><input type="checkbox" data-stat="moving" checked> Zeit in Bewegung (geschätzt)</label>
         <p class="hint">Geschätzt aus GPS-Zeitstempeln; Pausen und Lücken über 5 Minuten zählen nicht als Bewegungszeit.</p>
       </div>
       <div class="slider">
@@ -92,15 +134,15 @@
         <input type="range" id="statsFont" min="80" max="180" step="5" value="130">
         <output id="statsFontOut">130 %</output>
       </div>
-      <label class="check"><input type="checkbox" id="optPlates" checked> Beschriftungen hinterlegen</label>
-      <div class="slider">
+      <label class="check" id="optPlatesRow"><input type="checkbox" id="optPlates" checked> Beschriftungen hinterlegen</label>
+      <div class="slider" id="plateOpacityRow">
         <label for="plateOpacity">Transparenz der Label-Hintergründe</label>
         <input type="range" id="plateOpacity" min="0" max="100" step="1" value="94">
         <output id="plateOpacityOut">94 %</output>
       </div>
     </div>
 
-    <div class="group">
+    <div class="group" id="backgroundGroup">
       <h2>Hintergrundbild</h2>
       <div class="row">
         <label class="btn" for="bgFile">Bild wählen</label>
@@ -129,7 +171,7 @@
     </div>
 
     <!--FEATURE:selfhost-->
-    <div class="group">
+    <div class="group" id="mapGroup">
       <h2>Kartenhintergrund</h2>
       <label class="field">Stil
         <select id="mapStyle">
@@ -205,7 +247,7 @@
       <div id="hlist"></div>
     </div>
 
-    <div class="group">
+    <div class="group" id="exportGroup">
       <h2>Export</h2>
       <div class="row">
         <button class="btn primary" id="expPng" type="button">PNG (300 dpi)</button>
