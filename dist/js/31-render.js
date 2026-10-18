@@ -5,11 +5,12 @@ function flagSVG(x,y,type,pal){
   var s=x>M+W-6?-1:1, q=sc(1), H=5.2*q, out='';
   var top=y-H;
   out+='<line x1="'+f(x)+'" y1="'+f(y)+'" x2="'+f(x)+'" y2="'+f(top)+'" stroke="'+pal.ink+'" stroke-width=".45" stroke-linecap="round"/>';
-  out+='<circle cx="'+f(x)+'" cy="'+f(y)+'" r=".6" fill="'+pal.ink+'"/>';
   if(type==='start'){
+    out+='<circle cx="'+f(x)+'" cy="'+f(y)+'" r=".8" fill="'+pal.bg+'" stroke="'+pal.route+'" stroke-width=".6"/>';
     var pts=[[x,top],[x+s*3.8*q,top+1.2*q],[x,top+2.4*q]].map(function(p){return f(p[0])+','+f(p[1]);}).join(' ');
     out+='<polygon points="'+pts+'" fill="'+pal.route+'" stroke="'+pal.route+'" stroke-width=".2" stroke-linejoin="round"/>';
   }else{
+    out+='<rect x="'+f(x-.65)+'" y="'+f(y-.65)+'" width="1.3" height="1.3" rx=".15" fill="'+pal.ink+'" stroke="'+pal.bg+'" stroke-width=".2"/>';
     var cols=4, rows=3, cw=.9*q, ch=.8*q, ox=s>0?x:x-cols*cw;
     out+='<rect x="'+f(ox)+'" y="'+f(top)+'" width="'+f(cols*cw)+'" height="'+f(rows*ch)+'" fill="'+pal.bg+'"/>';
     for(var i=0;i<cols;i++){for(var j=0;j<rows;j++){
@@ -22,16 +23,17 @@ function flagSVG(x,y,type,pal){
 
 // ---------- Rendering ----------
 function render(){
+  if(state.posterMode==='stages'){renderStagesPoster();updateCaption();return;}
   if(state.posterMode==='vacation'){renderVacationPoster();updateCaption();return;}
-  var pal=palette(), t=state.track, geo=geometry(), h='';
+  var pal=palette(), t=state.track, geo=geometry(), h='',header='';
   h+='<rect width="100" height="'+f(fmt().H)+'" fill="'+pal.bg+'"/>';
-  if(state.showTitle){h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Titel')+'</text>';}
+  if(state.showTitle){header+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Titel')+'</text>';}
   if(state.showSubtitle&&String(state.subtitle||'').trim()){
-    h+='<text id="psubtitle" x="'+M+'" y="'+f(subtitleY())+'" font-size="'+subtitleFs()+'" font-weight="500" fill="'+pal.subtitle+'">'+esc(state.subtitle)+'</text>';
+    header+='<text id="psubtitle" x="'+M+'" y="'+f(subtitleY())+'" font-size="'+subtitleFs()+'" font-weight="500" fill="'+pal.subtitle+'">'+esc(state.subtitle)+'</text>';
   }
-  if(state.showRegion&&String(state.region||'').trim()){h+='<text id="preg" x="'+(M+W)+'" y="'+LAY.regionY+'" font-size="'+metaFs()+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';}
-  if(state.showDate){h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+metaFs()+'" font-weight="500" text-anchor="end" fill="'+pal.date+'">'+esc(formatDate(state.date))+'</text>';}
-  h+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+LAY.ruleY+'" y2="'+LAY.ruleY+'" stroke="'+pal.ink+'" stroke-opacity=".3" stroke-width=".2"/>';
+  if(state.showRegion&&String(state.region||'').trim()){header+='<text id="preg" x="'+(M+W)+'" y="'+LAY.regionY+'" font-size="'+metaFs()+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';}
+  if(state.showDate){header+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+metaFs()+'" font-weight="500" text-anchor="end" fill="'+pal.date+'">'+esc(formatDate(state.date))+'</text>';}
+  header+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+LAY.ruleY+'" y2="'+LAY.ruleY+'" stroke="'+pal.ink+'" stroke-opacity=".3" stroke-width=".2"/>';
 
   if(!t){
     h+='<text x="50" y="'+f(fmt().H/2)+'" font-size="'+sc(3.6)+'" font-weight="500" text-anchor="middle" fill="'+pal.muted+'">GPX-Datei laden oder Beispielroute wählen</text>';
@@ -44,6 +46,7 @@ function render(){
     else{h+=flagSVG(a0[0],a0[1],'start',pal)+flagSVG(a1[0],a1[1],'finish',pal);}
 
     // elevation profile
+    if(state.profilePlate){h+='<rect x="'+f(M-1.5)+'" y="'+f(LAY.profT-1)+'" width="'+f(W+3)+'" height="'+f(fmt().B-LAY.profT+2)+'" rx="1" fill="'+pal.bg+'" fill-opacity="'+(state.plateOpacity/100)+'"/>';}
     if(t.hasEle){
       var pp=t.s.map(function(p){return [geo.profX(p.d),geo.profY(p.e)];});
       var line='M'+pp.map(function(p){return f(p[0])+' '+f(p[1]);}).join('L');
@@ -82,6 +85,7 @@ function render(){
       });
     }
   }
+  h+=header;
   if(t&&attrOn()){
     h+='<text id="pattr" x="'+(M+W)+'" y="'+f(fmt().B+sc(0.4))+'" font-size="'+sc(1.9)+'" font-weight="500" text-anchor="end" fill="'+pal.muted+'">'+esc(attrText())+'</text>';
   }
@@ -299,5 +303,6 @@ function updateCaption(){
   var F=fmt(), txt;
   if(F.print){var px=Math.round(F.mmW/25.4*300), py=Math.round(F.mmH/25.4*300);txt='Vorschau '+de(F.mmW)+' × '+de(F.mmH)+' mm, PNG-Export '+de(px)+' × '+de(py)+' px';}
   else{txt='Vorschau '+F.name+', PNG-Export '+de(F.px[0])+' × '+de(F.px[1])+' px';}
+  if(state.posterMode==='stages'){txt+=' · '+vacationSelected().length+' dargestellte Etappen';}
   $('#caption').textContent=txt;
 }

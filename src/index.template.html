@@ -21,6 +21,7 @@
     <p class="lead" id="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
     <div class="mode-tabs" role="group" aria-label="Posterart">
       <button class="btn" id="routeMode" type="button" aria-pressed="true">Routenposter</button>
+      <button class="btn" id="stagesMode" type="button" aria-pressed="false">Mehrtagestour</button>
       <button class="btn" id="vacationMode" type="button" aria-pressed="false">Urlaubsstatistik</button>
     </div>
 
@@ -51,16 +52,20 @@
       <div class="slider"><label for="metaFontSize">Größe von Region und Datum</label><input type="range" id="metaFontSize" min="60" max="160" step="5" value="100"><output id="metaFontSizeOut">100 %</output></div>
     </div>
 
-    <div class="group" id="vacationGroup" hidden>
-      <h2>Urlaubsstatistik</h2>
+    <div class="group" id="tracksGroup" hidden>
+      <h2>Etappen</h2>
       <div class="row">
         <label class="btn primary" for="vacationFiles">GPX-Dateien wählen</label>
         <input type="file" id="vacationFiles" accept=".gpx,application/gpx+xml,application/xml,text/xml" multiple hidden>
         <button class="btn small" id="clearVacation" type="button">Alle entfernen</button>
       </div>
-      <p class="hint">Wähle die GPX-Touren des Urlaubs aus. Die Statistik fasst sie zusammen; Karte und Routen werden nicht dargestellt.</p>
+      <p class="hint" id="tracksHint">Lade für jeden Tag eine GPX-Datei. Die ausgewählten Etappen werden gemeinsam dargestellt.</p>
       <p class="hint" id="vacationMsg" role="status" aria-live="polite"></p>
       <div id="vacationList"></div>
+    </div>
+
+    <div class="group" id="vacationGroup" hidden>
+      <h2>Statistik</h2>
       <p class="label-line">Kennzahlen im Poster</p>
       <div class="vac-stat-options" id="vacationStatOptions">
         <div class="vac-stat-option" data-vac-stat-item="tours"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Touren sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="tours" checked> Touren</label></div>
@@ -152,8 +157,9 @@
         <output id="statsFontOut">130 %</output>
       </div>
       <label class="check" id="optPlatesRow"><input type="checkbox" id="optPlates" checked> Beschriftungen hinterlegen</label>
+      <label class="check" id="profilePlateRow"><input type="checkbox" id="profilePlate"> Höhenprofil und Statistik hinterlegen</label>
       <div class="slider" id="plateOpacityRow">
-        <label for="plateOpacity">Transparenz der Label-Hintergründe</label>
+        <label for="plateOpacity">Deckkraft der Box-Hintergründe</label>
         <input type="range" id="plateOpacity" min="0" max="100" step="1" value="94">
         <output id="plateOpacityOut">94 %</output>
       </div>
@@ -195,12 +201,20 @@
           <option value="none">Keiner</option>
           <option value="topo">Topo (OpenTopoMap)</option>
           <option value="osm">Standard (OpenStreetMap)</option>
-          <option value="light">Minimal hell (CARTO)</option>
-          <option value="dark">Minimal dunkel (CARTO)</option>
           <option value="custom">Eigene Kachel-URL …</option>
         </select>
       </label>
       <div id="mapCtl" hidden>
+        <div class="row" style="margin:8px 0">
+          <button class="btn small" id="mapPos" type="button" aria-pressed="false">Karte positionieren</button>
+          <button class="btn small" id="mapFit" type="button">Ansicht zurücksetzen</button>
+        </div>
+        <div class="slider">
+          <label for="mapZoom">Kartenzoom</label>
+          <input type="range" id="mapZoom" min="65" max="250" step="1" value="100">
+          <output id="mapZoomOut">100 %</output>
+        </div>
+        <p class="hint">Im Poster ziehen, um Karte und Route zu verschieben. Mausrad oder Zoomregler ändert den Ausschnitt.</p>
         <div id="mapCustom" hidden>
           <label class="field">Kachel-URL<input type="text" id="mapUrl" placeholder="https://…/{z}/{x}/{y}.png" autocomplete="off"></label>
           <label class="field">Quellenangabe<input type="text" id="mapAttrText" placeholder="© Anbieter, © OpenStreetMap-Mitwirkende" autocomplete="off"></label>
@@ -275,6 +289,14 @@
     </div>
   </aside>
 </div>
+<footer class="site-footer">
+  <span>Wander-Poster · kostenlos und ohne Konto</span>
+  <nav aria-label="Rechtliche Informationen">
+    <a href="impressum.html">Impressum</a>
+    <a href="datenschutz.html">Datenschutz</a>
+    <a href="nutzung.html">Nutzungshinweise</a>
+  </nav>
+</footer>
 
 
 

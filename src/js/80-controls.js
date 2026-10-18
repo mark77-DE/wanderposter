@@ -25,6 +25,7 @@ $('#resetPos').addEventListener('click',function(){
 });
 
 // ---------- Text and format controls ----------
+state.subtitle=typeof state.subtitle==='string'?state.subtitle:'';
 $('#title').value=state.title; $('#subtitle').value=state.subtitle; $('#showTitle').checked=state.showTitle; $('#showSubtitle').checked=state.showSubtitle;
 $('#titleFontSize').value=state.titleFontSize; $('#titleFontSizeOut').textContent=state.titleFontSize+' %';
 $('#subtitleFontSize').value=state.subtitleFontSize; $('#subtitleFontSizeOut').textContent=state.subtitleFontSize+' %';
@@ -43,10 +44,14 @@ $('#showDate').addEventListener('change',function(e){state.showDate=e.target.che
 $('#metaFontSize').addEventListener('input',function(e){state.metaFontSize=+e.target.value;$('#metaFontSizeOut').textContent=state.metaFontSize+' %';applyFormat();render();});
 $('#optEle').addEventListener('change',function(e){state.showEle=e.target.checked;render();});
 function syncStatsUi(){
-  var enabled=state.showStats,t=state.track;
+  var enabled=state.showStats,t=state.track,hasEle=t?t.hasEle:true,hasTime=t?t.hasTime:true;
+  if(state.posterMode==='stages'){
+    var rows=vacationSelected(),eleRows=rows.filter(function(r){return r.track.hasEle;}),timeRows=rows.filter(function(r){return r.track.hasTime;});
+    hasEle=eleRows.length>0;hasTime=timeRows.length>0;
+  }
   $('#statsOptions').querySelectorAll('input[data-stat]').forEach(function(input){
-    input.disabled=!enabled||((input.dataset.stat==='ascent'||input.dataset.stat==='max'||input.dataset.stat==='min')&&t&&!t.hasEle)
-      ||((input.dataset.stat==='elapsed'||input.dataset.stat==='moving')&&t&&!t.hasTime);
+    input.disabled=!enabled||((input.dataset.stat==='ascent'||input.dataset.stat==='max'||input.dataset.stat==='min')&&!hasEle)
+      ||((input.dataset.stat==='elapsed'||input.dataset.stat==='moving')&&!hasTime);
   });
 }
 $('#optStats').addEventListener('change',function(e){state.showStats=e.target.checked;syncStatsUi();render();});
@@ -65,6 +70,7 @@ $('#optPlates').addEventListener('change',function(e){state.plates=e.target.chec
 $('#plateOpacity').addEventListener('input',function(e){
   state.plateOpacity=+e.target.value; $('#plateOpacityOut').textContent=state.plateOpacity+' %'; render();
 });
+$('#profilePlate').addEventListener('change',function(e){state.profilePlate=e.target.checked;render();});
 function bindSeg(id,attr,onPick){
   $(id).addEventListener('click',function(e){
     var b=e.target.closest('button'); if(!b){return;}
@@ -138,9 +144,10 @@ function syncColors(){
 }
 function syncColorMode(){
   var vacation=state.posterMode==='vacation';
-  $('#colorRouteLabel').textContent=vacation?'Balken':'Route';
-  $('#colorProfileRow').hidden=vacation;
-  $('#colorHighlightRow').hidden=vacation;
+  var stages=state.posterMode==='stages';
+  $('#colorRouteLabel').textContent=vacation?'Balken':(stages?'Etappen':'Route');
+  $('#colorProfileRow').hidden=vacation||stages;
+  $('#colorHighlightRow').hidden=vacation||stages;
 }
 $('#presets').addEventListener('click',function(e){
   var b=e.target.closest('.preset'); if(!b){return;}
@@ -155,7 +162,7 @@ $('#presets').addEventListener('click',function(e){
 var presetColorKeys=['bg','ink','route','profile','highlight','statValue','statLabel','date','subtitle'];
 var presetStatKeys=['distance','ascent','max','min','elapsed','moving'];
 var vacationStatKeys=['tours','ascent','days','longest','highest','average','elapsed','moving'];
-var presetSettingKeys=['fmt','customWidth','customHeight','printBleedMm','safe','showEle','showStats','stats','statsFontSize','plates','plateOpacity','labelGap','labelMode','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','showTitle','showSubtitle','showRegion','showDate','vacTextSize','vacLabelSize','vacValueSize','vacationStats','vacationStatOrder','map'];
+var presetSettingKeys=['fmt','customWidth','customHeight','printBleedMm','safe','showEle','showStats','stats','statsFontSize','plates','profilePlate','plateOpacity','labelGap','labelMode','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','showTitle','showSubtitle','showRegion','showDate','vacTextSize','vacLabelSize','vacValueSize','vacationStats','vacationStatOrder'];
 function currentPresetColors(){
   var c=state.colors,out={};
   presetColorKeys.forEach(function(k){out[k]=c[k]||c.ink;});
@@ -177,14 +184,15 @@ function applyPreset(p){
   if(s.stats){state.stats={};presetStatKeys.forEach(function(k){state.stats[k]=!!s.stats[k];});}
   if(s.vacationStats){state.vacationStats={};vacationStatKeys.forEach(function(k){state.vacationStats[k]=!!s.vacationStats[k];});}
   if(s.vacationStatOrder){state.vacationStatOrder=s.vacationStatOrder.slice();}
-  if(s.map){state.map=Object.assign({},state.map,s.map);}
+  if(s.map){var currentMapView=state.map.view;state.map=Object.assign({},state.map,s.map);state.map.view=currentMapView||{scale:1,x:0,y:0};}
+  if(state.map.style==='light'||state.map.style==='dark'){state.map.style='osm';}
   var numeric={customWidth:[50,1000],customHeight:[50,1000],printBleedMm:[0,10],statsFontSize:[80,180],plateOpacity:[0,100],labelGap:[0,40],hlFontSize:[50,200],titleFontSize:[50,200],subtitleFontSize:[50,200],metaFontSize:[50,200],vacTextSize:[70,160],vacLabelSize:[70,160],vacValueSize:[70,160]};
   Object.keys(numeric).forEach(function(k){if(!isFinite(+state[k])){state[k]=100;}state[k]=clamp(+state[k],numeric[k][0],numeric[k][1]);});
-  ['safe','showEle','showStats','plates','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){state[k]=!!state[k];});
+  ['safe','showEle','showStats','plates','profilePlate','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){state[k]=!!state[k];});
   if(['c100','c150','c200','story','feed','sq','custom'].indexOf(state.fmt)<0){state.fmt='c150';}
   if(['route','profile'].indexOf(state.labelMode)<0){state.labelMode='profile';}
   $('#customWidth').value=state.customWidth;$('#customHeight').value=state.customHeight;$('#printBleed').value=state.printBleedMm;
-  $('#optSafe').checked=state.safe;$('#optEle').checked=state.showEle;$('#optStats').checked=state.showStats;$('#optPlates').checked=state.plates;
+  $('#optSafe').checked=state.safe;$('#optEle').checked=state.showEle;$('#optStats').checked=state.showStats;$('#optPlates').checked=state.plates;$('#profilePlate').checked=state.profilePlate;
   $('#statsFont').value=state.statsFontSize;$('#statsFontOut').textContent=state.statsFontSize+' %';$('#plateOpacity').value=state.plateOpacity;$('#plateOpacityOut').textContent=state.plateOpacity+' %';
   $('#gap').value=state.labelGap;$('#gapOut').textContent=de(state.labelGap,1);$('#hlFont').value=state.hlFontSize;$('#hlFontOut').textContent=state.hlFontSize+' %';
   [['titleFontSize','titleFontSizeOut'],['subtitleFontSize','subtitleFontSizeOut'],['metaFontSize','metaFontSizeOut'],['vacTextSize','vacTextSizeOut'],['vacLabelSize','vacLabelSizeOut'],['vacValueSize','vacValueSizeOut']].forEach(function(pair){$('#'+pair[0]).value=state[pair[0]];$('#'+pair[1]).textContent=state[pair[0]]+' %';});
@@ -225,7 +233,7 @@ $('#presetFile').addEventListener('change',function(e){
       if(data.settings){
         var s=data.settings;
         if(s.fmt!==undefined&&['c100','c150','c200','story','feed','sq','custom'].indexOf(s.fmt)<0){throw new Error('Das Ausgabeformat in der Datei ist ungültig.');}
-        ['safe','showEle','showStats','plates','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){if(s[k]!==undefined&&typeof s[k]!=='boolean'){throw new Error('Die Option „'+k+'“ in der Datei ist ungültig.');}});
+        ['safe','showEle','showStats','plates','profilePlate','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){if(s[k]!==undefined&&typeof s[k]!=='boolean'){throw new Error('Die Option „'+k+'“ in der Datei ist ungültig.');}});
         ['customWidth','customHeight','printBleedMm','statsFontSize','plateOpacity','labelGap','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','vacTextSize','vacLabelSize','vacValueSize'].forEach(function(k){if(s[k]!==undefined&&(!isFinite(+s[k])||typeof s[k]==='boolean')){throw new Error('Der Größenwert „'+k+'“ in der Datei ist ungültig.');}});
         if(s.labelMode!==undefined&&['route','profile'].indexOf(s.labelMode)<0){throw new Error('Der Beschriftungsabstand in der Datei ist ungültig.');}
         if(s.stats&&presetStatKeys.some(function(k){return typeof s.stats[k]!=='boolean';})){throw new Error('Die Statistikoptionen in der Datei sind ungültig.');}

@@ -40,7 +40,7 @@ var isoToday=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+
 var state={
   track:null, posterMode:'route', vacationTracks:[], nextVacationId:1, vacationStats:{tours:true,ascent:true,days:true,longest:true,highest:true,average:true,elapsed:true,moving:true}, vacationStatOrder:['tours','ascent','longest','moving','days','highest','average','elapsed'], title:'Brocken-Runde', region:'Harz', date:isoToday,
   fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c',date:'#60736c',subtitle:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
-  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, titleFontSize:100, subtitle:'', subtitleFontSize:100, metaFontSize:100, showTitle:true, showSubtitle:true, showRegion:true, showDate:true, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
+  hl:[], nextId:1, addMode:false, posMode:false, mapPosMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17,view:{scale:1,x:0,y:0}}, labelGap:9, labelMode:'profile', hlFontSize:100, titleFontSize:100, subtitleFontSize:100, metaFontSize:100, showTitle:true, showSubtitle:true, showRegion:true, showDate:true, profilePlate:false, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
 };
 
 // ---------- Formats ----------
@@ -85,12 +85,13 @@ function applyFormat(){
   if(state.showRegion||state.showDate){contentBottom=Math.max(contentBottom,LAY.dateY+metaFs()*.25+sc(1));}
   LAY.ruleY=f(contentBottom);
   LAY.mapT=f(LAY.ruleY+3.6);
-  var B=F.B-(attrOn()?sc(3.3):0);                       // stats move up when an attribution line is shown
+  var B=F.B-(attrOn()?sc(3.3):0);                       // stats move up when a map attribution is shown
   LAY.statY=B;
   LAY.profB=f(B-sc(8.6));
   LAY.axisY=f(LAY.profB+sc(3.3));
   LAY.profT=f(LAY.profB-F.profH);
-  LAY.mapB=f(LAY.profT-(19+(F.K-1)*10));
+  var mapProfileGap=state.posterMode==='stages'?6:19+(F.K-1)*10;
+  LAY.mapB=f(LAY.profT-mapProfileGap);
   state.mapB=LAY.mapB;
   svg.setAttribute('viewBox','0 0 100 '+f(F.H));
   $('.poster-wrap').style.setProperty('--ratio',String(100/F.H));

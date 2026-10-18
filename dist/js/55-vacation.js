@@ -1,6 +1,29 @@
 'use strict';
 // ---------- Multi-track vacation statistics poster ----------
 function vacationSelected(){return state.vacationTracks.filter(function(r){return r.track&&r.include;});}
+function stageGeometry(){
+  var rows=vacationSelected();
+  if(!rows.length){state.stageMapRef=null;return null;}
+  var rad=Math.PI/180,latSum=0,lonSum=0,count=0;
+  rows.forEach(function(r){r.track.s.forEach(function(p){var ll=r.track.toLL(p.px,p.py);latSum+=ll[0];lonSum+=ll[1];count++;});});
+  var lat0=latSum/count,lon0=lonSum/count,y0=mercY(lat0), kcos=Math.cos(lat0*rad);
+  state.stageMapRef={lat0:lat0,lon0:lon0,y0:y0,kcos:kcos};
+  var stages=[],minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  rows.forEach(function(r){
+    var pts=r.track.s.map(function(p){var ll=r.track.toLL(p.px,p.py),x=(ll[1]-lon0)*rad*MERC_R,y=mercY(ll[0])-y0;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);return {x:x,y:y,e:p.e,d:p.d};});
+    stages.push(pts);
+  });
+  var bw=Math.max(maxX-minX,1),bh=Math.max(maxY-minY,1),legendN=Math.min(rows.length,8),legendRows=Math.ceil(legendN/Math.min(4,legendN)),plotTop=LAY.mapT+3+legendRows*2.2,mh=state.mapB-plotTop,pad=mapPad();
+  var scale=Math.min((W-2*pad)/bw,(mh-2*pad)/bh),ox=M+(W-bw*scale)/2,oy=plotTop+(mh-bh*scale)/2;
+  var endpointTop=Infinity;
+  rows.forEach(function(r,i){var ps=stages[i],a=oy+(maxY-ps[0].y)*scale,b=oy+(maxY-ps[ps.length-1].y)*scale;endpointTop=Math.min(endpointTop,a,b);});
+  if(endpointTop-sc(5.2)<plotTop+1){
+    var routeH=mh-sc(6.2);scale=Math.min((W-2*pad)/bw,(routeH-2*pad)/bh);ox=M+(W-bw*scale)/2;oy=plotTop+sc(6.2)+(routeH-bh*scale)/2;
+  }
+  function mapPt(p){return [ox+(p.x-minX)*scale,oy+(maxY-p.y)*scale];}
+  return applyMapView({stages:stages,mapPt:mapPt,minX:minX,maxX:maxX,minY:minY,maxY:maxY,ox:ox,oy:oy,sc:scale,
+    profX:function(d,total,offset){return M+(offset+d)/total*W;},profY:function(e,e0,e1){return LAY.profB-(e-e0)/(e1-e0)*(LAY.profB-LAY.profT);}});
+}
 function vacationDateLabel(iso,options){
   var p=iso.split('-');
   return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('de-DE',options||{day:'2-digit',month:'2-digit'});
@@ -26,17 +49,18 @@ function vacationSummary(rows){
 function vacationRenderList(){
   var list=$('#vacationList'); list.innerHTML='';
   var included=vacationSelected().length;
-  state.vacationTracks.forEach(function(r){
+  state.vacationTracks.forEach(function(r,index){
     var row=document.createElement('div'); row.className='vac-item';
     var label=document.createElement('label'); label.className='vac-file';
     var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!r.include; cb.disabled=!r.track; cb.dataset.vacId=r.id;
     var info=document.createElement('span'); info.className='vac-file-info';
-    var name=document.createElement('b'); name.textContent=r.name; info.appendChild(name);
+    var name=document.createElement('b'); name.textContent=(index+1)+'. '+r.name; info.appendChild(name);
     var small=document.createElement('small');
     small.textContent=r.track
       ?de(r.track.total/1000,1)+' km'+(r.track.hasEle?', '+de(r.track.ascent)+' HM':'')+(r.track.date?', '+vacationDateLabel(r.track.date):', ohne Zeitstempel')
       :'Fehler: '+r.error;
     info.appendChild(small); label.appendChild(cb); label.appendChild(info); row.appendChild(label);
+    if(r.track){var color=document.createElement('input');color.type='color';color.className='vac-stage-color';color.value=r.color||stageDefaultColor(index);color.title='Farbe der Etappe '+(index+1);color.setAttribute('aria-label','Farbe der Etappe '+(index+1));color.dataset.stageColorId=r.id;color.hidden=state.posterMode!=='stages';row.appendChild(color);}
     var remove=document.createElement('button'); remove.type='button'; remove.className='btn small'; remove.textContent='Entfernen'; remove.dataset.removeVac=r.id; row.appendChild(remove);
     list.appendChild(row);
   });
@@ -62,22 +86,25 @@ $('#vacationFiles').addEventListener('change',async function(e){
   if(!files.length){return;}
   $('#vacationMsg').textContent=files.length+' Datei'+(files.length===1?' wird':'en werden')+' gelesen …';
   var rows=await Promise.all(files.map(vacationReadFile));
+  rows.forEach(function(r,i){if(r.track){r.color=stageDefaultColor(state.vacationTracks.length+i);}});
   state.vacationTracks=state.vacationTracks.concat(rows);
-  vacationRenderList(); render();
+  vacationRenderList(); syncStatsUi(); render();
 });
 $('#vacationList').addEventListener('change',function(e){
+  var colorId=+e.target.dataset.stageColorId;
+  if(colorId){var colored=state.vacationTracks.filter(function(r){return r.id===colorId;})[0];if(colored){colored.color=e.target.value;render();}return;}
   var id=+e.target.dataset.vacId;
   if(!id){return;}
   var row=state.vacationTracks.filter(function(r){return r.id===id;})[0];
-  if(row){row.include=e.target.checked;vacationRenderList();render();}
+  if(row){row.include=e.target.checked;vacationRenderList();syncStatsUi();render();}
 });
 $('#vacationList').addEventListener('click',function(e){
   var id=+e.target.dataset.removeVac;
   if(!id){return;}
   state.vacationTracks=state.vacationTracks.filter(function(r){return r.id!==id;});
-  vacationRenderList();render();
+  vacationRenderList();syncStatsUi();render();
 });
-$('#clearVacation').addEventListener('click',function(){state.vacationTracks=[];vacationRenderList();render();});
+$('#clearVacation').addEventListener('click',function(){state.vacationTracks=[];vacationRenderList();syncStatsUi();render();});
 $('#vacationStatOptions').addEventListener('change',function(e){
   var key=e.target.dataset.vacStat;
   if(!key){return;}
@@ -119,24 +146,106 @@ $('#vacTextSize').addEventListener('input',function(e){state.vacTextSize=+e.targ
 $('#vacLabelSize').addEventListener('input',function(e){state.vacLabelSize=+e.target.value;$('#vacLabelSizeOut').textContent=state.vacLabelSize+' %';render();});
 $('#vacValueSize').addEventListener('input',function(e){state.vacValueSize=+e.target.value;$('#vacValueSizeOut').textContent=state.vacValueSize+' %';render();});
 
+var STAGE_COLORS=['#2364aa','#2a9d68','#a23b72','#d17a00','#6046a8','#008b8b','#6b7280','#bd3e21','#3b7a57'];
+function stageDefaultColor(i){return i===0?palette().route:STAGE_COLORS[(i-1)%STAGE_COLORS.length];}
+function stageColor(i,row){return row&&row.color?row.color:stageDefaultColor(i);}
+function renderStagesPoster(){
+  var rows=vacationSelected(),sum=vacationSummary(rows),pal=palette(),F=fmt(),H=F.H,h='',header='';
+  h+='<rect width="100" height="'+f(H)+'" fill="'+pal.bg+'"/>';
+  if(state.showTitle){header+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Mehrtagestour')+'</text>';}
+  if(state.showSubtitle&&String(state.subtitle||'').trim()){header+='<text id="psubtitle" x="'+M+'" y="'+f(subtitleY())+'" font-size="'+subtitleFs()+'" font-weight="500" fill="'+pal.subtitle+'">'+esc(state.subtitle)+'</text>';}
+  if(state.showRegion&&String(state.region||'').trim()){header+='<text x="'+(M+W)+'" y="'+LAY.regionY+'" font-size="'+metaFs()+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';}
+  if(state.showDate){header+='<text x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+metaFs()+'" font-weight="500" text-anchor="end" fill="'+pal.date+'">'+esc(vacationPeriod(rows))+'</text>';}
+  header+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+LAY.ruleY+'" y2="'+LAY.ruleY+'" stroke="'+pal.ink+'" stroke-opacity=".3" stroke-width=".2"/>';
+  if(!rows.length){
+    h+='<text x="50" y="'+f(fmt().H/2)+'" font-size="'+sc(3.5)+'" text-anchor="middle" fill="'+pal.muted+'">GPX-Etappen laden, um die Touren darzustellen</text>';
+  }else{
+    // Compact numbered legend follows the upload order shown in the etappe list.
+    var legendN=Math.min(rows.length,8), legendCols=Math.min(4,legendN), legendRows=Math.ceil(legendN/legendCols);
+    var legendTop=LAY.mapT+2, routeTop=LAY.mapT+3+legendRows*2.2, routeBottom=LAY.mapB;
+    for(var li=0;li<legendN;li++){
+      var col=li%legendCols,row=Math.floor(li/legendCols), cell=W/legendCols, lx=M+cell*col+1.4, ly=legendTop+row*2.2;
+      h+='<line x1="'+f(lx)+'" x2="'+f(lx+2.4)+'" y1="'+f(ly-.55)+'" y2="'+f(ly-.55)+'" stroke="'+stageColor(li,rows[li])+'" stroke-width=".8"/>'+
+        '<text x="'+f(lx+3.1)+'" y="'+f(ly)+'" font-size="'+sc(1.65)+'" fill="'+pal.muted+'">Etappe '+(li+1)+'</text>';
+    }
+    if(rows.length>legendN){h+='<text x="'+(M+W)+'" y="'+f(legendTop+(legendRows-1)*2.2)+'" text-anchor="end" font-size="'+sc(1.55)+'" fill="'+pal.muted+'">+'+(rows.length-legendN)+' weitere</text>';}
+    var geo=stageGeometry(),points=geo.stages;
+    rows.forEach(function(r,ri){
+      var pts=points[ri], mp=pts.map(geo.mapPt), color=stageColor(ri,r), stagePal=Object.assign({},pal,{route:color});
+      h+='<path d="M'+mp.map(function(p){return f(p[0])+' '+f(p[1]);}).join('L')+'" fill="none" stroke="'+color+'" stroke-width="'+sc(.72)+'" stroke-linecap="round" stroke-linejoin="round"/>';
+      if(r.track.closed){h+=flagSVG(mp[0][0],mp[0][1],'both',stagePal);}
+      else{h+=flagSVG(mp[0][0],mp[0][1],'start',stagePal)+flagSVG(mp[mp.length-1][0],mp[mp.length-1][1],'finish',stagePal);}
+    });
+    if(state.profilePlate){h+='<rect x="'+f(M-1.5)+'" y="'+f(LAY.profT-1)+'" width="'+f(W+3)+'" height="'+f(fmt().B-LAY.profT+2)+'" rx="1" fill="'+pal.bg+'" fill-opacity="'+(state.plateOpacity/100)+'"/>';}
+    var hasEle=rows.some(function(r){return r.track.hasEle;}), minE=Infinity,maxE=-Infinity;
+    if(hasEle){rows.forEach(function(r){if(r.track.hasEle){minE=Math.min(minE,r.track.minE);maxE=Math.max(maxE,r.track.maxE);}});if(maxE-minE<60){var mid=(maxE+minE)/2;minE=mid-30;maxE=mid+30;}}
+    var base=LAY.profB, total=Math.max(sum.total,1),offset=0;
+    rows.forEach(function(r,ri){
+      var t=r.track,color=stageColor(ri,r), end=offset+t.total;
+      if(hasEle&&t.hasEle){
+        var line='M'+t.s.map(function(p){var x=M+(offset+p.d)/total*W,y=base-(p.e-minE)/(maxE-minE)*(base-LAY.profT);return f(x)+' '+f(y);}).join('L');
+        h+='<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="'+sc(.48)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+      }
+      offset=end;
+    });
+    if(hasEle){
+      h+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+base+'" y2="'+base+'" stroke="'+pal.ink+'" stroke-opacity=".55" stroke-width=".25"/>';
+      rows.forEach(function(r,ri){var x=M+rows.slice(0,ri).reduce(function(a,b){return a+b.track.total;},0)/total*W;h+='<line x1="'+f(x)+'" x2="'+f(x)+'" y1="'+base+'" y2="'+f(base+1.1)+'" stroke="'+stageColor(ri,r)+'" stroke-width=".45"/>';});
+      h+='<text x="'+M+'" y="'+LAY.axisY+'" font-size="'+sc(1.8)+'" fill="'+pal.muted+'">Höhenprofil je Etappe</text>';
+    }else{h+='<text x="50" y="'+f((LAY.profT+LAY.profB)/2)+'" font-size="'+sc(2.4)+'" text-anchor="middle" fill="'+pal.muted+'">Keine Höhendaten in den GPX-Dateien</text>';}
+    var stageStats=[],eleRows=rows.filter(function(r){return r.track.hasEle;}),elapsedRows=rows.filter(function(r){return r.track.elapsed!=null;}),movingRows=rows.filter(function(r){return r.track.movingTime!=null;});
+    if(state.showStats){
+      if(state.stats.distance){stageStats.push({v:de(sum.total/1000,1)+' km',l:'Gesamtstrecke'});}
+      if(eleRows.length&&state.stats.ascent){stageStats.push({v:de(sum.ascent)+' m',l:'Höhenmeter'});}
+      if(eleRows.length&&state.stats.max){stageStats.push({v:de(Math.max.apply(null,eleRows.map(function(r){return r.track.maxE;})))+' m',l:'Höchster Punkt'});}
+      if(eleRows.length&&state.stats.min){stageStats.push({v:de(Math.min.apply(null,eleRows.map(function(r){return r.track.minE;})))+' m',l:'Tiefster Punkt'});}
+      if(elapsedRows.length&&state.stats.elapsed){stageStats.push({v:formatDuration(elapsedRows.reduce(function(a,r){return a+r.track.elapsed;},0)),l:'Gesamtzeit'});}
+      if(movingRows.length&&state.stats.moving){stageStats.push({v:formatDuration(movingRows.reduce(function(a,r){return a+r.track.movingTime;},0)),l:'Bewegungszeit'});}
+      stageStats.push({v:String(rows.length),l:'Etappen'});
+    }
+    stageStats.forEach(function(s,i){var n=stageStats.length,cellW=W/n,x=M+cellW*(i+.5),valueFs=sc(2.25*state.statsFontSize/100),labelFs=sc(1.35*state.statsFontSize/100);h+='<g class="stage-stat"><text x="'+f(x)+'" y="'+f(LAY.statY-sc(1.7))+'" text-anchor="middle" font-size="'+valueFs+'" font-weight="600" fill="'+pal.statValue+'">'+esc(s.v)+'</text><text x="'+f(x)+'" y="'+LAY.statY+'" text-anchor="middle" font-size="'+labelFs+'" fill="'+pal.statLabel+'">'+esc(s.l)+'</text></g>';});
+  }
+  h+=header;
+  if(rows.length&&attrOn()){h+='<text x="'+(M+W)+'" y="'+f(fmt().B+sc(.4))+'" font-size="'+sc(1.9)+'" text-anchor="end" fill="'+pal.muted+'">'+esc(attrText())+'</text>';}
+  svg.innerHTML=h;
+  var anchorNode=svg.children[1]||null;
+  if(bgEl&&state.bg){bgApply();svg.insertBefore(bgEl,anchorNode);anchorNode=bgEl.nextSibling;}
+  if(mapG&&geo&&state.map.style!=='none'){placeMap(geo);svg.insertBefore(mapClip,anchorNode);svg.insertBefore(mapG,anchorNode);}
+  var title=svg.querySelector('#ptitle');if(title){var tw=title.getComputedTextLength(),mw=W-4;if(tw>mw){title.setAttribute('font-size',f(titleFs()*mw/tw));}}
+  var subtitle=svg.querySelector('#psubtitle');if(subtitle){var sw=subtitle.getComputedTextLength();if(sw>W){subtitle.setAttribute('font-size',f(subtitleFs()*W/sw));}}
+  var stageStatsEls=Array.prototype.slice.call(svg.querySelectorAll('.stage-stat'));
+  if(stageStatsEls.length){var stageCell=W/stageStatsEls.length;stageStatsEls.forEach(function(g,i){Array.prototype.forEach.call(g.children,function(el){var width=el.getComputedTextLength(),maxW=stageCell-1;if(width>maxW){el.setAttribute('font-size',f(+el.getAttribute('font-size')*maxW/width));}});});}
+  ensureBackdrop();
+}
+
 function setPosterMode(mode){
-  var vacation=mode==='vacation'; state.posterMode=vacation?'vacation':'route';
-  $('#routeMode').setAttribute('aria-pressed',vacation?'false':'true');
+  var vacation=mode==='vacation',stages=mode==='stages'; state.posterMode=vacation?'vacation':(stages?'stages':'route');
+  if(vacation&&state.mapPosMode){setMapPosMode(false);}
+  $('#routeMode').setAttribute('aria-pressed',vacation||stages?'false':'true');
+  $('#stagesMode').setAttribute('aria-pressed',stages?'true':'false');
   $('#vacationMode').setAttribute('aria-pressed',vacation?'true':'false');
-  $('#lead').textContent=vacation
-    ?'Mehrere GPX-Touren zusammenfassen und als Urlaubsstatistik drucken.'
-    :'GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.';
-  $('#routeGroup').hidden=vacation; $('#vacationGroup').hidden=!vacation;
+  $('#lead').textContent=vacation?'Mehrere GPX-Touren als gemeinsame Urlaubsstatistik darstellen.':stages?'Mehrere GPX-Etappen gemeinsam als lange Tour mit farbigen Routen darstellen.':'GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.';
+  $('#routeGroup').hidden=vacation||stages; $('#tracksGroup').hidden=!(vacation||stages); $('#vacationGroup').hidden=!vacation;
+  $('#tracksHint').textContent=stages?'Lade für jeden Tag eine GPX-Datei. Die ausgewählten Etappen werden gemeinsam dargestellt.':'Wähle die GPX-Touren aus, die in die Statistik einfließen sollen.';
   $('#statsFont').closest('.slider').hidden=vacation;
   syncColorMode();
-  $('#highlightsGroup').hidden=vacation; $('#backgroundGroup').hidden=vacation; $('#mapGroup').hidden=vacation;
-  $('#dateField').hidden=vacation;
-  ['optEleRow','optStatsRow','statsOptions','optPlatesRow','plateOpacityRow'].forEach(function(id){$('#'+id).hidden=vacation;});
+  $('#highlightsGroup').hidden=vacation||stages; $('#backgroundGroup').hidden=vacation;
+  var mapGroup=$('#mapGroup');if(mapGroup){mapGroup.hidden=vacation;}
+  $('#dateField').hidden=vacation||stages;
+  ['optEleRow','optPlatesRow'].forEach(function(id){$('#'+id).hidden=vacation||stages;});
+  $('#profilePlateRow').hidden=vacation;
+  $('#plateOpacityRow').hidden=vacation;
+  ['optStatsRow','statsOptions'].forEach(function(id){$('#'+id).hidden=vacation;});
   if(vacation&&state.title==='Brocken-Runde'){state.title='Urlaubsstatistik';$('#title').value=state.title;}
-  if(!vacation&&state.title==='Urlaubsstatistik'){state.title='Brocken-Runde';$('#title').value=state.title;}
-  vacationRenderList(); render();
+  if(stages&&state.title==='Brocken-Runde'){state.title='Mehrtagestour';$('#title').value=state.title;}
+  if(stages&&state.title==='Urlaubsstatistik'){state.title='Mehrtagestour';$('#title').value=state.title;}
+  if(!vacation&&!stages&&(state.title==='Urlaubsstatistik'||state.title==='Mehrtagestour')){state.title='Brocken-Runde';$('#title').value=state.title;}
+  if((vacation||stages)&&state.title==='Mehrtagestour'&&vacation){state.title='Urlaubsstatistik';$('#title').value=state.title;}
+  mapReset();
+  vacationRenderList(); syncStatsUi(); syncMapUi(); applyFormat(); render();
 }
 $('#routeMode').addEventListener('click',function(){setPosterMode('route');});
+$('#stagesMode').addEventListener('click',function(){setPosterMode('stages');});
 $('#vacationMode').addEventListener('click',function(){setPosterMode('vacation');});
 
 function vacationChartBins(daily){

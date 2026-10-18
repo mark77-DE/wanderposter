@@ -79,12 +79,14 @@ def build_single(js_files, selfhost, out_name):
     html = html.replace("<!--CSS-->", "<style>\n" + css + "</style>")
     html = html.replace("<!--JS-->", "<script>\n(function(){\n'use strict';\n" + js + "\n})();\n</script>")
     write(ROOT / "dist-single" / out_name, html)
+    for page in ("impressum.html", "datenschutz.html", "nutzung.html"):
+        legal_html = read(SRC / "legal" / page).replace('href="index.html"', f'href="{out_name}"')
+        write(ROOT / "dist-single" / page, legal_html)
 
 
 def build_multi():
     out = ROOT / "dist"
-    if out.exists():
-        shutil.rmtree(out)
+    out.mkdir(parents=True, exist_ok=True)
     html = read(SRC / "index.template.html")
     html = feature_blocks(html, True)
     html = html.replace("<!--PWA_HEAD-->", PWA_HEAD)
@@ -103,6 +105,11 @@ def build_multi():
     tags.append(f'<script src="js/99-pwa.js?v={BUILD}"></script>')
     html = html.replace("<!--JS-->", "\n".join(tags))
     write(out / "index.html", html)
+
+    # Legal and usage information for the public hosted app
+    for page in ("impressum.html", "datenschutz.html", "nutzung.html"):
+        shutil.copy(SRC / "legal" / page, out / page)
+        assets.append(page)
 
     write(out / "css" / "style.css", read(SRC / "css" / "style.css"))
     shutil.copy(SRC / "pwa" / "manifest.webmanifest", out / "manifest.webmanifest")

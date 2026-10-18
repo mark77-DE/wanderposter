@@ -2,7 +2,15 @@
 // ---------- Geometry ----------
 // with a visible map box the route needs some air to the box edges
 function mapPad(){return (state.map.style!=='none'&&state.map.ext==='box')?sc(3.5):0;}
+function applyMapView(geo){
+  var v=state.map.view||{scale:1,x:0,y:0}, base=geo.mapPt, cx=50, cy=(LAY.mapT+state.mapB)/2, k=clamp(+v.scale||1,.65,2.5), dx=+v.x||0, dy=+v.y||0;
+  geo.mapPt=function(p){var q=base(p);return [cx+(q[0]-cx)*k+dx,cy+(q[1]-cy)*k+dy];};
+  if(geo.mp){geo.mp=geo.mp.map(function(p){return [cx+(p[0]-cx)*k+dx,cy+(p[1]-cy)*k+dy];});}
+  geo.ox=cx+(geo.ox-cx)*k+dx;geo.oy=cy+(geo.oy-cy)*k+dy;geo.sc*=k;
+  return geo;
+}
 function geometry(){
+  if(state.posterMode==='stages'){return stageGeometry();}
   var t=state.track; if(!t){return null;}
   var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
   t.s.forEach(function(p){
@@ -26,13 +34,13 @@ function geometry(){
   function mapPt(p){return [ox+(p.px-minX)*scale, oy+(maxY-p.py)*scale];}
   var e0=t.minE, e1=t.maxE;
   if(e1-e0<60){var c=(e0+e1)/2;e0=c-30;e1=c+30;}
-  return {
+  return applyMapView({
     mapPt:mapPt,
     mp:t.s.map(mapPt),
     minX:minX, maxY:maxY, ox:ox, oy:oy, sc:scale,
     profX:function(d){return M+d/t.total*W;},
     profY:function(e){return LAY.profB-(e-e0)/(e1-e0)*(LAY.profB-LAY.profT);}
-  };
+  });
 }
 function sampleAt(d){
   var t=state.track, s=t.s, n=s.length-1;

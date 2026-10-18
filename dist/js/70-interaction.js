@@ -1,11 +1,12 @@
 'use strict';
 // ---------- Pointer interaction on the poster ----------
-var drag=null, raf=0;
+var drag=null, raf=0, mapDrag=null;
 function toSvg(e){
   var pt=svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
   return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
 svg.addEventListener('pointerdown',function(e){
+  if(state.mapPosMode){var mp=toSvg(e);mapDrag={sx:mp.x,sy:mp.y,x:state.map.view.x,y:state.map.view.y};svg.setPointerCapture(e.pointerId);svg.classList.add('dragging');e.preventDefault();return;}
   if(state.posMode&&state.bg){
     var q=toSvg(e);
     bgDrag={sx:q.x,sy:q.y,ox:state.bg.ox,oy:state.bg.oy};
@@ -31,6 +32,7 @@ svg.addEventListener('pointerdown',function(e){
   e.preventDefault();
 });
 svg.addEventListener('pointermove',function(e){
+  if(mapDrag){var q=toSvg(e);state.map.view.x=clamp(mapDrag.x+q.x-mapDrag.sx,-60,60);state.map.view.y=clamp(mapDrag.y+q.y-mapDrag.sy,-60,60);render();return;}
   if(bgDrag){
     var q=toSvg(e);
     state.bg.ox=clamp(bgDrag.ox+q.x-bgDrag.sx,-150,150); state.bg.oy=clamp(bgDrag.oy+q.y-bgDrag.sy,-150,150);
@@ -44,6 +46,7 @@ svg.addEventListener('pointermove',function(e){
   if(!raf){raf=requestAnimationFrame(function(){raf=0;render();});}
 });
 function endDrag(){
+  if(mapDrag){mapDrag=null;svg.classList.remove('dragging');render();return;}
   if(bgDrag){bgDrag=null;svg.classList.remove('dragging');return;}
   if(!drag){return;}
   drag=null; svg.classList.remove('dragging');

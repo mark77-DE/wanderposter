@@ -96,4 +96,5 @@ Die App holt sich die neue Fassung beim nächsten Start selbst, manchmal erst na
   beachten; bei Social-Media-Formaten bleibt die Quellenangabe immer an. Wenn ein Anbieter keine CORS-Freigabe schickt,
   hilft eine eigene Proxy-URL (Stil „Eigene Kachel-URL“).
 - **Schrift:** Barlow Condensed (SIL Open Font License), als Teilmenge eingebettet.
-- Es wird nichts gespeichert und nichts hochgeladen. Die GPX-Datei bleibt im Browser.
+- Die GPX-Datei bleibt bei normaler Nutzung im Browser. Optionale Kartenkacheln und OSM-Suchanfragen werden direkt bei Drittanbietern geladen; Suchanfragen enthalten vereinfachte Routenkoordinaten. Der Webhoster kann technische Zugriffsdaten wie IP-Adressen protokollieren. Vor der Veröffentlichung die Platzhalter in `src/legal/` ersetzen und die Hosting-Logfristen beim Anbieter erfragen.
+- `dist/` enthält Impressum, Datenschutzerklärung und Nutzungshinweise. Diese Texte sind eine technische Vorlage, keine Rechtsberatung.
