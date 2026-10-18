@@ -45,7 +45,7 @@ function render(){
     else{h+=flagSVG(a0[0],a0[1],'start',pal)+flagSVG(a1[0],a1[1],'finish',pal);}
 
     // elevation profile
-    if(state.profilePlate){h+='<rect x="'+f(M-1.5)+'" y="'+f(LAY.profT-1)+'" width="'+f(W+3)+'" height="'+f(fmt().B-LAY.profT+2)+'" rx="1" fill="'+pal.bg+'" fill-opacity="'+(state.plateOpacity/100)+'"/>';}
+    if(state.profilePlate){h+='<rect x="'+f(M-1.5)+'" y="'+f(LAY.profT-1)+'" width="'+f(W+3)+'" height="'+f(LAY.statY-LAY.profT+2)+'" rx="1.8" fill="'+pal.bg+'" fill-opacity="'+(state.plateOpacity/100)+'"/>';}
     if(t.hasEle){
       var pp=t.s.map(function(p){return [geo.profX(p.d),geo.profY(p.e)];});
       var line='M'+pp.map(function(p){return f(p[0])+' '+f(p[1]);}).join('L');

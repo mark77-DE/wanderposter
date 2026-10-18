@@ -176,7 +176,7 @@ function renderStagesPoster(){
       if(r.track.closed){h+=flagSVG(mp[0][0],mp[0][1],'both',stagePal);}
       else{h+=flagSVG(mp[0][0],mp[0][1],'start',stagePal)+flagSVG(mp[mp.length-1][0],mp[mp.length-1][1],'finish',stagePal);}
     });
-    if(state.profilePlate){h+='<rect x="'+f(M-1.5)+'" y="'+f(LAY.profT-1)+'" width="'+f(W+3)+'" height="'+f(fmt().B-LAY.profT+2)+'" rx="1" fill="'+pal.bg+'" fill-opacity="'+(state.plateOpacity/100)+'"/>';}
+    if(state.profilePlate){h+='<rect x="'+f(M-1.5)+'" y="'+f(LAY.profT-1)+'" width="'+f(W+3)+'" height="'+f(LAY.statY-LAY.profT+2)+'" rx="1.8" fill="'+pal.bg+'" fill-opacity="'+(state.plateOpacity/100)+'"/>';}
     var hasEle=rows.some(function(r){return r.track.hasEle;}), minE=Infinity,maxE=-Infinity;
     if(hasEle){rows.forEach(function(r){if(r.track.hasEle){minE=Math.min(minE,r.track.minE);maxE=Math.max(maxE,r.track.maxE);}});if(maxE-minE<60){var mid=(maxE+minE)/2;minE=mid-30;maxE=mid+30;}}
     var base=LAY.profB, total=Math.max(sum.total,1),offset=0;
