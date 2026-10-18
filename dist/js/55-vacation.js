@@ -156,9 +156,12 @@ function renderVacationPoster(){
   var labelScale=textScale*state.vacLabelSize/100*(compact?1.4:1);
   var valueScale=textScale*state.vacValueSize/100*(compact?1.4:1);
   h+='<rect width="100" height="'+f(H)+'" fill="'+pal.bg+'"/>';
-  h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Urlaubsstatistik')+'</text>';
-  h+='<text id="preg" x="'+(M+W)+'" y="'+f(LAY.dateY-sc(2.8)*1.1)+'" font-size="'+sc(2.8)+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';
-  h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+sc(2.8)+'" font-weight="500" text-anchor="end" fill="'+pal.muted+'">'+esc(vacationPeriod(rows))+'</text>';
+  if(state.showTitle){h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Urlaubsstatistik')+'</text>';}
+  if(state.showSubtitle&&String(state.subtitle||'').trim()){
+    h+='<text id="psubtitle" x="'+M+'" y="'+f(subtitleY())+'" font-size="'+subtitleFs()+'" font-weight="500" fill="'+pal.subtitle+'">'+esc(state.subtitle)+'</text>';
+  }
+  if(state.showRegion&&String(state.region||'').trim()){h+='<text id="preg" x="'+(M+W)+'" y="'+LAY.regionY+'" font-size="'+metaFs()+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';}
+  if(state.showDate){h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+metaFs()+'" font-weight="500" text-anchor="end" fill="'+pal.date+'">'+esc(vacationPeriod(rows))+'</text>';}
   h+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+LAY.ruleY+'" y2="'+LAY.ruleY+'" stroke="'+pal.ink+'" stroke-opacity=".3" stroke-width=".2"/>';
   // The route poster reserves the lower half for elevation data; the vacation
   // poster can use that space for a taller daily-distance chart.
@@ -206,6 +209,8 @@ function renderVacationPoster(){
   svg.innerHTML=h;
   var title=svg.querySelector('#ptitle');
   if(title){var width=title.getComputedTextLength(), maxW=W-4;if(width>maxW){title.setAttribute('font-size',f(titleFs()*maxW/width));}}
+  var subtitle=svg.querySelector('#psubtitle');
+  if(subtitle){var subtitleWidth=subtitle.getComputedTextLength();if(subtitleWidth>W){subtitle.setAttribute('font-size',f(subtitleFs()*W/subtitleWidth));}}
   var total=svg.querySelector('#vac-total');
   if(total){var width2=total.getComputedTextLength(), maxW2=W-4;if(width2>maxW2){total.setAttribute('font-size',f(sc(7.2*textScale)*maxW2/width2));}}
 }

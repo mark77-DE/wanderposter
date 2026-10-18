@@ -24,9 +24,12 @@ function render(){
   if(state.posterMode==='vacation'){renderVacationPoster();updateCaption();return;}
   var pal=palette(), t=state.track, geo=geometry(), h='';
   h+='<rect width="100" height="'+f(fmt().H)+'" fill="'+pal.bg+'"/>';
-  h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Titel')+'</text>';
-  h+='<text id="preg" x="'+(M+W)+'" y="'+f(LAY.dateY-sc(2.8)*1.1)+'" font-size="'+sc(2.8)+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';
-  h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+sc(2.8)+'" font-weight="500" text-anchor="end" fill="'+pal.muted+'">'+esc(formatDate(state.date))+'</text>';
+  if(state.showTitle){h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Titel')+'</text>';}
+  if(state.showSubtitle&&String(state.subtitle||'').trim()){
+    h+='<text id="psubtitle" x="'+M+'" y="'+f(subtitleY())+'" font-size="'+subtitleFs()+'" font-weight="500" fill="'+pal.subtitle+'">'+esc(state.subtitle)+'</text>';
+  }
+  if(state.showRegion&&String(state.region||'').trim()){h+='<text id="preg" x="'+(M+W)+'" y="'+LAY.regionY+'" font-size="'+metaFs()+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';}
+  if(state.showDate){h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+metaFs()+'" font-weight="500" text-anchor="end" fill="'+pal.date+'">'+esc(formatDate(state.date))+'</text>';}
   h+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+LAY.ruleY+'" y2="'+LAY.ruleY+'" stroke="'+pal.ink+'" stroke-opacity=".3" stroke-width=".2"/>';
 
   if(!t){
@@ -102,6 +105,8 @@ function render(){
     var maxW=W-(rw?rw+4:0);
     if(len>maxW){tt.setAttribute('font-size',f(titleFs()*maxW/len));}
   }
+  var sub=svg.querySelector('#psubtitle');
+  if(sub){var subWidth=sub.getComputedTextLength();if(subWidth>W){sub.setAttribute('font-size',f(subtitleFs()*W/subWidth));}}
   var pa=svg.querySelector('#pattr');
   if(pa){var pl=pa.getComputedTextLength(); if(pl>W){pa.setAttribute('font-size',f(sc(1.9)*W/pl));}}
   // center each stat in its column and shrink only text that exceeds that column

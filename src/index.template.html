@@ -39,8 +39,16 @@
     <div class="group" id="textGroup">
       <h2>Text</h2>
       <label class="field">Titel<input type="text" id="title" autocomplete="off" placeholder="z. B. Brocken"></label>
+      <label class="check"><input type="checkbox" id="showTitle" checked> Titel anzeigen</label>
+      <div class="slider"><label for="titleFontSize">Größe des Titels</label><input type="range" id="titleFontSize" min="60" max="160" step="5" value="100"><output id="titleFontSizeOut">100 %</output></div>
+      <label class="field">Unterüberschrift<input type="text" id="subtitle" autocomplete="off" placeholder="Optional"></label>
+      <label class="check"><input type="checkbox" id="showSubtitle" checked> Unterüberschrift anzeigen</label>
+      <div class="slider"><label for="subtitleFontSize">Größe der Unterüberschrift</label><input type="range" id="subtitleFontSize" min="60" max="160" step="5" value="100"><output id="subtitleFontSizeOut">100 %</output></div>
       <label class="field" id="regionField">Region<input type="text" id="region" autocomplete="off" placeholder="z. B. Harz"></label>
+      <label class="check"><input type="checkbox" id="showRegion" checked> Region anzeigen</label>
       <label class="field" id="dateField">Datum<input type="date" id="date"></label>
+      <label class="check" id="showDateRow"><input type="checkbox" id="showDate" checked> Datum anzeigen</label>
+      <div class="slider"><label for="metaFontSize">Größe von Region und Datum</label><input type="range" id="metaFontSize" min="60" max="160" step="5" value="100"><output id="metaFontSizeOut">100 %</output></div>
     </div>
 
     <div class="group" id="vacationGroup" hidden>
@@ -108,6 +116,13 @@
       <label class="check" id="safeRow" hidden><input type="checkbox" id="optSafe" checked> App-Bereiche der Story einblenden</label>
       <p class="label-line">Farben</p>
       <div class="presets" id="presets" role="group" aria-label="Farbvorlagen"></div>
+      <div class="preset-tools">
+        <label class="color">Name des Presets<input type="text" id="presetName" value="Eigenes Preset" maxlength="40"></label>
+        <button type="button" id="exportPreset">Preset exportieren</button>
+        <button type="button" id="importPreset">Preset importieren</button>
+        <input type="file" id="presetFile" accept=".json,application/json" hidden>
+      </div>
+      <p class="hint" id="presetHint" role="status" aria-live="polite"></p>
       <div class="colors">
         <label class="color">Hintergrund<input type="color" id="cBg"></label>
         <label class="color">Schrift und Linien<input type="color" id="cInk"></label>
@@ -116,6 +131,8 @@
         <label class="color" id="colorHighlightRow"><span>Highlight-Labels</span><input type="color" id="cHighlight"></label>
         <label class="color">Statistikwerte<input type="color" id="cStatValue"></label>
         <label class="color">Statistiklabels<input type="color" id="cStatLabel"></label>
+        <label class="color">Datum<input type="color" id="cDate"></label>
+        <label class="color">Unterüberschrift<input type="color" id="cSubtitle"></label>
       </div>
       <p class="hint" id="contrastHint" style="color:var(--accent)"></p>
       <label class="check" id="optEleRow"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
@@ -227,7 +244,7 @@
         <div id="osmlist"></div>
         <button class="btn primary small" id="osmAdd" type="button" style="margin-top:8px">Auswahl übernehmen</button>
       </div>
-      <p class="hint">„Highlight setzen“ und dann auf Route oder Höhenprofil tippen. Die nummerierten Marker lassen sich entlang der Route ziehen, die Beschriftung frei verschieben und über den Regler drehen.</p>
+      <p class="hint">„Highlight setzen“ und dann auf Route oder Höhenprofil tippen. Position und optionale Höhenangabe lassen sich anschließend in der Highlight-Liste über Kilometer und Meter anpassen. Die nummerierten Marker lassen sich entlang der Route ziehen, die Beschriftung frei verschieben und über den Regler drehen.</p>
       <!--/FEATURE-->
       <div class="slider">
         <label for="hlFont">Schriftgröße der Beschriftungen</label>

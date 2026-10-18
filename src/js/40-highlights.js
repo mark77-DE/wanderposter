@@ -33,6 +33,8 @@ function renderList(){
     card.innerHTML='<span class="badge">'+(i+1)+'</span>'+
       '<input type="text" class="hl-name" placeholder="Name, z. B. Ottobeuren" autocomplete="off" aria-label="Name von Highlight '+(i+1)+'" value="'+esc(hl.name)+'">'+
       '<button type="button" class="btn small del" aria-label="Highlight '+(i+1)+' entfernen">Entfernen</button>'+
+      '<label class="hl-number">Kilometer auf der Route<input type="number" class="hl-km" min="0" max="'+(state.track.total/1000).toFixed(2)+'" step="0.01" value="'+(hl.d/1000).toFixed(2)+'" aria-label="Position von Highlight '+(i+1)+' in Kilometern"></label>'+
+      '<label class="hl-number">Höhe überschreiben (m)<input type="number" class="hl-ele" step="1" placeholder="GPX-Höhe verwenden" value="'+(hl.ele==null?'':esc(hl.ele))+'" aria-label="Höhe von Highlight '+(i+1)+' in Metern"></label>'+
       '<label class="rot">Drehung<input type="range" class="hl-rot" min="-90" max="90" step="5" value="'+hl.rot+'"><output>'+hl.rot+'°</output></label>'+
       '<label class="size">Größe<input type="range" class="hl-size" min="50" max="200" step="5" value="'+hl.size+'"><output>'+hl.size+' %</output></label>';
     box.appendChild(card);
@@ -44,6 +46,8 @@ $('#hlist').addEventListener('input',function(e){
   var card=e.target.closest('.hl-card'); if(!card){return;}
   var hl=byId(+card.dataset.id); if(!hl){return;}
   if(e.target.classList.contains('hl-name')){hl.name=e.target.value;}
+  if(e.target.classList.contains('hl-km')){var km=e.target.valueAsNumber;if(isFinite(km)){hl.d=clamp(km*1000,0,state.track.total);render();}}
+  if(e.target.classList.contains('hl-ele')){var ele=e.target.value.trim();if(ele===''){delete hl.ele;}else if(isFinite(e.target.valueAsNumber)){hl.ele=e.target.valueAsNumber;}render();}
   if(e.target.classList.contains('hl-rot')){hl.rot=+e.target.value;card.querySelector('output').textContent=hl.rot+'°';}
   if(e.target.classList.contains('hl-size')){hl.size=+e.target.value;card.querySelector('.size output').textContent=hl.size+' %';}
   render();

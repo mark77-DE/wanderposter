@@ -27,7 +27,7 @@ function palette(){
   var c=state.colors;
   return {bg:c.bg, ink:c.ink, route:c.route, profile:c.profile||c.ink,
     highlight:c.highlight||c.ink, statValue:c.statValue||c.ink,
-    statLabel:c.statLabel||mixHex(c.bg,c.ink,0.68), muted:mixHex(c.bg,c.ink,0.68)};
+    statLabel:c.statLabel||mixHex(c.bg,c.ink,0.68), date:c.date||mixHex(c.bg,c.ink,0.68), subtitle:c.subtitle||mixHex(c.bg,c.ink,0.68), muted:mixHex(c.bg,c.ink,0.68)};
 }
 
 var $=function(s){return document.querySelector(s);};
@@ -39,8 +39,8 @@ var isoToday=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+
 
 var state={
   track:null, posterMode:'route', vacationTracks:[], nextVacationId:1, vacationStats:{tours:true,ascent:true,days:true,longest:true,highest:true,average:true,elapsed:true,moving:true}, vacationStatOrder:['tours','ascent','longest','moving','days','highest','average','elapsed'], title:'Brocken-Runde', region:'Harz', date:isoToday,
-  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
-  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
+  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c',date:'#60736c',subtitle:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
+  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, titleFontSize:100, subtitle:'', subtitleFontSize:100, metaFontSize:100, showTitle:true, showSubtitle:true, showRegion:true, showDate:true, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
 };
 
 // ---------- Formats ----------
@@ -68,13 +68,22 @@ function fmt(){
   }
   return base;
 }
-function titleFs(){return fmt().print?TITLE_FS:TITLE_FS*1.15;}
+function titleFs(){return (fmt().print?TITLE_FS:TITLE_FS*1.15)*state.titleFontSize/100;}
+function subtitleFs(){return sc(2.2*state.subtitleFontSize/100);}
+function metaFs(){return sc(2.8*state.metaFontSize/100);}
+function subtitleY(){return state.showTitle?LAY.titleY+titleFs()*.68+sc(.4):LAY.titleY;}
 // derive the vertical layout of the current format
 function applyFormat(){
   var F=fmt();
   LAY.titleY=f(F.T+titleFs()*0.735);
   LAY.dateY=LAY.titleY;
-  LAY.ruleY=f(LAY.titleY+3.6);
+  LAY.regionY=f(LAY.dateY-metaFs()*1.1);
+  var hasSubtitle=state.showSubtitle&&String(state.subtitle||'').trim();
+  var contentBottom=LAY.titleY+sc(3.6);
+  if(state.showTitle){contentBottom=Math.max(contentBottom,LAY.titleY+titleFs()*.2+sc(2.3));}
+  if(hasSubtitle){contentBottom=Math.max(contentBottom,subtitleY()+subtitleFs()*.25+sc(1));}
+  if(state.showRegion||state.showDate){contentBottom=Math.max(contentBottom,LAY.dateY+metaFs()*.25+sc(1));}
+  LAY.ruleY=f(contentBottom);
   LAY.mapT=f(LAY.ruleY+3.6);
   var B=F.B-(attrOn()?sc(3.3):0);                       // stats move up when an attribution line is shown
   LAY.statY=B;

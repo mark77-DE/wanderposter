@@ -87,6 +87,8 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 .hl-card{display:grid;grid-template-columns:28px 1fr auto;gap:6px 8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--field)}
 .badge{width:24px;height:24px;border-radius:50%;background:var(--text);color:var(--bg);display:grid;place-items:center;font-size:12px;font-weight:650}
 .hl-card input[type=text]{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:.35rem .5rem;min-width:0}
+.hl-card .hl-number{grid-column:2 / 4;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.hl-card .hl-number input{box-sizing:border-box;width:125px;max-width:48%;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:.35rem .5rem}
 .hl-card .rot,.hl-card .size{grid-column:2 / 4;display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted)}
 .hl-card .rot input,.hl-card .size input{flex:1;min-width:0;accent-color:var(--accent)}
 .hl-card .rot output,.hl-card .size output{text-align:right;font-variant-numeric:tabular-nums}
@@ -113,6 +115,11 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
 .preset[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .preset .sw{display:flex;width:100%;height:20px;border-radius:5px;overflow:hidden;border:1px solid var(--line)}
 .preset .sw i{flex:1}
+.preset-tools{display:flex;align-items:flex-end;flex-wrap:wrap;gap:8px;margin-top:10px}
+.preset-tools .color{flex:1 1 170px;min-width:150px}
+.preset-tools .color input{box-sizing:border-box;width:100%;height:34px;padding:6px 8px;color:var(--text);font:inherit;cursor:text}
+.preset-tools button{font:inherit;font-size:13px;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer}
+#presetHint:empty{display:none}
 .colors{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:12px}
 .color{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
 .color input{width:56px;height:34px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer}
@@ -165,8 +172,16 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
     <div class="group" id="textGroup">
       <h2>Text</h2>
       <label class="field">Titel<input type="text" id="title" autocomplete="off" placeholder="z. B. Brocken"></label>
+      <label class="check"><input type="checkbox" id="showTitle" checked> Titel anzeigen</label>
+      <div class="slider"><label for="titleFontSize">Größe des Titels</label><input type="range" id="titleFontSize" min="60" max="160" step="5" value="100"><output id="titleFontSizeOut">100 %</output></div>
+      <label class="field">Unterüberschrift<input type="text" id="subtitle" autocomplete="off" placeholder="Optional"></label>
+      <label class="check"><input type="checkbox" id="showSubtitle" checked> Unterüberschrift anzeigen</label>
+      <div class="slider"><label for="subtitleFontSize">Größe der Unterüberschrift</label><input type="range" id="subtitleFontSize" min="60" max="160" step="5" value="100"><output id="subtitleFontSizeOut">100 %</output></div>
       <label class="field" id="regionField">Region<input type="text" id="region" autocomplete="off" placeholder="z. B. Harz"></label>
+      <label class="check"><input type="checkbox" id="showRegion" checked> Region anzeigen</label>
       <label class="field" id="dateField">Datum<input type="date" id="date"></label>
+      <label class="check" id="showDateRow"><input type="checkbox" id="showDate" checked> Datum anzeigen</label>
+      <div class="slider"><label for="metaFontSize">Größe von Region und Datum</label><input type="range" id="metaFontSize" min="60" max="160" step="5" value="100"><output id="metaFontSizeOut">100 %</output></div>
     </div>
 
     <div class="group" id="vacationGroup" hidden>
@@ -234,6 +249,13 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
       <label class="check" id="safeRow" hidden><input type="checkbox" id="optSafe" checked> App-Bereiche der Story einblenden</label>
       <p class="label-line">Farben</p>
       <div class="presets" id="presets" role="group" aria-label="Farbvorlagen"></div>
+      <div class="preset-tools">
+        <label class="color">Name des Presets<input type="text" id="presetName" value="Eigenes Preset" maxlength="40"></label>
+        <button type="button" id="exportPreset">Preset exportieren</button>
+        <button type="button" id="importPreset">Preset importieren</button>
+        <input type="file" id="presetFile" accept=".json,application/json" hidden>
+      </div>
+      <p class="hint" id="presetHint" role="status" aria-live="polite"></p>
       <div class="colors">
         <label class="color">Hintergrund<input type="color" id="cBg"></label>
         <label class="color">Schrift und Linien<input type="color" id="cInk"></label>
@@ -242,6 +264,8 @@ body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-a
         <label class="color" id="colorHighlightRow"><span>Highlight-Labels</span><input type="color" id="cHighlight"></label>
         <label class="color">Statistikwerte<input type="color" id="cStatValue"></label>
         <label class="color">Statistiklabels<input type="color" id="cStatLabel"></label>
+        <label class="color">Datum<input type="color" id="cDate"></label>
+        <label class="color">Unterüberschrift<input type="color" id="cSubtitle"></label>
       </div>
       <p class="hint" id="contrastHint" style="color:var(--accent)"></p>
       <label class="check" id="optEleRow"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
@@ -388,7 +412,7 @@ function palette(){
   var c=state.colors;
   return {bg:c.bg, ink:c.ink, route:c.route, profile:c.profile||c.ink,
     highlight:c.highlight||c.ink, statValue:c.statValue||c.ink,
-    statLabel:c.statLabel||mixHex(c.bg,c.ink,0.68), muted:mixHex(c.bg,c.ink,0.68)};
+    statLabel:c.statLabel||mixHex(c.bg,c.ink,0.68), date:c.date||mixHex(c.bg,c.ink,0.68), subtitle:c.subtitle||mixHex(c.bg,c.ink,0.68), muted:mixHex(c.bg,c.ink,0.68)};
 }
 
 var $=function(s){return document.querySelector(s);};
@@ -400,8 +424,8 @@ var isoToday=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+
 
 var state={
   track:null, posterMode:'route', vacationTracks:[], nextVacationId:1, vacationStats:{tours:true,ascent:true,days:true,longest:true,highest:true,average:true,elapsed:true,moving:true}, vacationStatOrder:['tours','ascent','longest','moving','days','highest','average','elapsed'], title:'Brocken-Runde', region:'Harz', date:isoToday,
-  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
-  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
+  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c',date:'#60736c',subtitle:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
+  hl:[], nextId:1, addMode:false, posMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17}, labelGap:9, labelMode:'profile', hlFontSize:100, titleFontSize:100, subtitle:'', subtitleFontSize:100, metaFontSize:100, showTitle:true, showSubtitle:true, showRegion:true, showDate:true, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
 };
 
 // ---------- Formats ----------
@@ -429,13 +453,22 @@ function fmt(){
   }
   return base;
 }
-function titleFs(){return fmt().print?TITLE_FS:TITLE_FS*1.15;}
+function titleFs(){return (fmt().print?TITLE_FS:TITLE_FS*1.15)*state.titleFontSize/100;}
+function subtitleFs(){return sc(2.2*state.subtitleFontSize/100);}
+function metaFs(){return sc(2.8*state.metaFontSize/100);}
+function subtitleY(){return state.showTitle?LAY.titleY+titleFs()*.68+sc(.4):LAY.titleY;}
 // derive the vertical layout of the current format
 function applyFormat(){
   var F=fmt();
   LAY.titleY=f(F.T+titleFs()*0.735);
   LAY.dateY=LAY.titleY;
-  LAY.ruleY=f(LAY.titleY+3.6);
+  LAY.regionY=f(LAY.dateY-metaFs()*1.1);
+  var hasSubtitle=state.showSubtitle&&String(state.subtitle||'').trim();
+  var contentBottom=LAY.titleY+sc(3.6);
+  if(state.showTitle){contentBottom=Math.max(contentBottom,LAY.titleY+titleFs()*.2+sc(2.3));}
+  if(hasSubtitle){contentBottom=Math.max(contentBottom,subtitleY()+subtitleFs()*.25+sc(1));}
+  if(state.showRegion||state.showDate){contentBottom=Math.max(contentBottom,LAY.dateY+metaFs()*.25+sc(1));}
+  LAY.ruleY=f(contentBottom);
   LAY.mapT=f(LAY.ruleY+3.6);
   var B=F.B-(attrOn()?sc(3.3):0);                       // stats move up when an attribution line is shown
   LAY.statY=B;
@@ -676,9 +709,12 @@ function render(){
   if(state.posterMode==='vacation'){renderVacationPoster();updateCaption();return;}
   var pal=palette(), t=state.track, geo=geometry(), h='';
   h+='<rect width="100" height="'+f(fmt().H)+'" fill="'+pal.bg+'"/>';
-  h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Titel')+'</text>';
-  h+='<text id="preg" x="'+(M+W)+'" y="'+f(LAY.dateY-sc(2.8)*1.1)+'" font-size="'+sc(2.8)+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';
-  h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+sc(2.8)+'" font-weight="500" text-anchor="end" fill="'+pal.muted+'">'+esc(formatDate(state.date))+'</text>';
+  if(state.showTitle){h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Titel')+'</text>';}
+  if(state.showSubtitle&&String(state.subtitle||'').trim()){
+    h+='<text id="psubtitle" x="'+M+'" y="'+f(subtitleY())+'" font-size="'+subtitleFs()+'" font-weight="500" fill="'+pal.subtitle+'">'+esc(state.subtitle)+'</text>';
+  }
+  if(state.showRegion&&String(state.region||'').trim()){h+='<text id="preg" x="'+(M+W)+'" y="'+LAY.regionY+'" font-size="'+metaFs()+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';}
+  if(state.showDate){h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+metaFs()+'" font-weight="500" text-anchor="end" fill="'+pal.date+'">'+esc(formatDate(state.date))+'</text>';}
   h+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+LAY.ruleY+'" y2="'+LAY.ruleY+'" stroke="'+pal.ink+'" stroke-opacity=".3" stroke-width=".2"/>';
 
   if(!t){
@@ -754,6 +790,8 @@ function render(){
     var maxW=W-(rw?rw+4:0);
     if(len>maxW){tt.setAttribute('font-size',f(titleFs()*maxW/len));}
   }
+  var sub=svg.querySelector('#psubtitle');
+  if(sub){var subWidth=sub.getComputedTextLength();if(subWidth>W){sub.setAttribute('font-size',f(subtitleFs()*W/subWidth));}}
   var pa=svg.querySelector('#pattr');
   if(pa){var pl=pa.getComputedTextLength(); if(pl>W){pa.setAttribute('font-size',f(sc(1.9)*W/pl));}}
   // center each stat in its column and shrink only text that exceeds that column
@@ -983,6 +1021,8 @@ function renderList(){
     card.innerHTML='<span class="badge">'+(i+1)+'</span>'+
       '<input type="text" class="hl-name" placeholder="Name, z. B. Ottobeuren" autocomplete="off" aria-label="Name von Highlight '+(i+1)+'" value="'+esc(hl.name)+'">'+
       '<button type="button" class="btn small del" aria-label="Highlight '+(i+1)+' entfernen">Entfernen</button>'+
+      '<label class="hl-number">Kilometer auf der Route<input type="number" class="hl-km" min="0" max="'+(state.track.total/1000).toFixed(2)+'" step="0.01" value="'+(hl.d/1000).toFixed(2)+'" aria-label="Position von Highlight '+(i+1)+' in Kilometern"></label>'+
+      '<label class="hl-number">Höhe überschreiben (m)<input type="number" class="hl-ele" step="1" placeholder="GPX-Höhe verwenden" value="'+(hl.ele==null?'':esc(hl.ele))+'" aria-label="Höhe von Highlight '+(i+1)+' in Metern"></label>'+
       '<label class="rot">Drehung<input type="range" class="hl-rot" min="-90" max="90" step="5" value="'+hl.rot+'"><output>'+hl.rot+'°</output></label>'+
       '<label class="size">Größe<input type="range" class="hl-size" min="50" max="200" step="5" value="'+hl.size+'"><output>'+hl.size+' %</output></label>';
     box.appendChild(card);
@@ -994,6 +1034,8 @@ $('#hlist').addEventListener('input',function(e){
   var card=e.target.closest('.hl-card'); if(!card){return;}
   var hl=byId(+card.dataset.id); if(!hl){return;}
   if(e.target.classList.contains('hl-name')){hl.name=e.target.value;}
+  if(e.target.classList.contains('hl-km')){var km=e.target.valueAsNumber;if(isFinite(km)){hl.d=clamp(km*1000,0,state.track.total);render();}}
+  if(e.target.classList.contains('hl-ele')){var ele=e.target.value.trim();if(ele===''){delete hl.ele;}else if(isFinite(e.target.valueAsNumber)){hl.ele=e.target.valueAsNumber;}render();}
   if(e.target.classList.contains('hl-rot')){hl.rot=+e.target.value;card.querySelector('output').textContent=hl.rot+'°';}
   if(e.target.classList.contains('hl-size')){hl.size=+e.target.value;card.querySelector('.size output').textContent=hl.size+' %';}
   render();
@@ -1197,9 +1239,12 @@ function renderVacationPoster(){
   var labelScale=textScale*state.vacLabelSize/100*(compact?1.4:1);
   var valueScale=textScale*state.vacValueSize/100*(compact?1.4:1);
   h+='<rect width="100" height="'+f(H)+'" fill="'+pal.bg+'"/>';
-  h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Urlaubsstatistik')+'</text>';
-  h+='<text id="preg" x="'+(M+W)+'" y="'+f(LAY.dateY-sc(2.8)*1.1)+'" font-size="'+sc(2.8)+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';
-  h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+sc(2.8)+'" font-weight="500" text-anchor="end" fill="'+pal.muted+'">'+esc(vacationPeriod(rows))+'</text>';
+  if(state.showTitle){h+='<text id="ptitle" x="'+M+'" y="'+LAY.titleY+'" font-size="'+titleFs()+'" font-weight="600" fill="'+pal.ink+'">'+esc(state.title||'Urlaubsstatistik')+'</text>';}
+  if(state.showSubtitle&&String(state.subtitle||'').trim()){
+    h+='<text id="psubtitle" x="'+M+'" y="'+f(subtitleY())+'" font-size="'+subtitleFs()+'" font-weight="500" fill="'+pal.subtitle+'">'+esc(state.subtitle)+'</text>';
+  }
+  if(state.showRegion&&String(state.region||'').trim()){h+='<text id="preg" x="'+(M+W)+'" y="'+LAY.regionY+'" font-size="'+metaFs()+'" font-weight="600" text-anchor="end" fill="'+pal.ink+'">'+esc(state.region)+'</text>';}
+  if(state.showDate){h+='<text id="pdate" x="'+(M+W)+'" y="'+LAY.dateY+'" font-size="'+metaFs()+'" font-weight="500" text-anchor="end" fill="'+pal.date+'">'+esc(vacationPeriod(rows))+'</text>';}
   h+='<line x1="'+M+'" x2="'+(M+W)+'" y1="'+LAY.ruleY+'" y2="'+LAY.ruleY+'" stroke="'+pal.ink+'" stroke-opacity=".3" stroke-width=".2"/>';
   // The route poster reserves the lower half for elevation data; the vacation
   // poster can use that space for a taller daily-distance chart.
@@ -1247,6 +1292,8 @@ function renderVacationPoster(){
   svg.innerHTML=h;
   var title=svg.querySelector('#ptitle');
   if(title){var width=title.getComputedTextLength(), maxW=W-4;if(width>maxW){title.setAttribute('font-size',f(titleFs()*maxW/width));}}
+  var subtitle=svg.querySelector('#psubtitle');
+  if(subtitle){var subtitleWidth=subtitle.getComputedTextLength();if(subtitleWidth>W){subtitle.setAttribute('font-size',f(subtitleFs()*W/subtitleWidth));}}
   var total=svg.querySelector('#vac-total');
   if(total){var width2=total.getComputedTextLength(), maxW2=W-4;if(width2>maxW2){total.setAttribute('font-size',f(sc(7.2*textScale)*maxW2/width2));}}
 }
@@ -1469,10 +1516,22 @@ $('#resetPos').addEventListener('click',function(){
 });
 
 // ---------- Text and format controls ----------
-$('#title').value=state.title; $('#region').value=state.region; $('#date').value=state.date;
+$('#title').value=state.title; $('#subtitle').value=state.subtitle; $('#showTitle').checked=state.showTitle; $('#showSubtitle').checked=state.showSubtitle;
+$('#titleFontSize').value=state.titleFontSize; $('#titleFontSizeOut').textContent=state.titleFontSize+' %';
+$('#subtitleFontSize').value=state.subtitleFontSize; $('#subtitleFontSizeOut').textContent=state.subtitleFontSize+' %';
+$('#metaFontSize').value=state.metaFontSize; $('#metaFontSizeOut').textContent=state.metaFontSize+' %';
+$('#region').value=state.region; $('#showRegion').checked=state.showRegion; $('#date').value=state.date; $('#showDate').checked=state.showDate;
 $('#title').addEventListener('input',function(e){state.title=e.target.value;render();});
+$('#showTitle').addEventListener('change',function(e){state.showTitle=e.target.checked;applyFormat();render();});
+$('#titleFontSize').addEventListener('input',function(e){state.titleFontSize=+e.target.value;$('#titleFontSizeOut').textContent=state.titleFontSize+' %';applyFormat();render();});
+$('#subtitle').addEventListener('input',function(e){state.subtitle=e.target.value;applyFormat();render();});
+$('#showSubtitle').addEventListener('change',function(e){state.showSubtitle=e.target.checked;applyFormat();render();});
+$('#subtitleFontSize').addEventListener('input',function(e){state.subtitleFontSize=+e.target.value;$('#subtitleFontSizeOut').textContent=state.subtitleFontSize+' %';applyFormat();render();});
 $('#region').addEventListener('input',function(e){state.region=e.target.value;render();});
+$('#showRegion').addEventListener('change',function(e){state.showRegion=e.target.checked;applyFormat();render();});
 $('#date').addEventListener('input',function(e){state.date=e.target.value;render();});
+$('#showDate').addEventListener('change',function(e){state.showDate=e.target.checked;applyFormat();render();});
+$('#metaFontSize').addEventListener('input',function(e){state.metaFontSize=+e.target.value;$('#metaFontSizeOut').textContent=state.metaFontSize+' %';applyFormat();render();});
 $('#optEle').addEventListener('change',function(e){state.showEle=e.target.checked;render();});
 function syncStatsUi(){
   var enabled=state.showStats,t=state.track;
@@ -1541,9 +1600,11 @@ $('#printBleed').addEventListener('input',function(e){
 $('#optSafe').addEventListener('change',function(e){state.safe=e.target.checked;render();});
 
 // ---------- Colors ----------
+state.customPresets=state.customPresets||[];
+function allPresets(){return PRESETS.concat(state.customPresets);}
 function renderPresets(){
   var box=$('#presets'); box.innerHTML='';
-  PRESETS.forEach(function(p,i){
+  allPresets().forEach(function(p,i){
     var b=document.createElement('button');
     b.type='button'; b.className='preset'; b.dataset.i=i;
     b.innerHTML='<span class="sw"><i style="background:'+p.bg+'"></i><i style="background:'+p.ink+'"></i><i style="background:'+p.route+'"></i></span><span>'+esc(p.name)+'</span>';
@@ -1554,10 +1615,11 @@ function syncColors(){
   var c=state.colors;
   $('#cBg').value=c.bg; $('#cInk').value=c.ink; $('#cRoute').value=c.route;
   $('#cProfile').value=c.profile||c.ink; $('#cHighlight').value=c.highlight||c.ink;
-  $('#cStatValue').value=c.statValue||c.ink; $('#cStatLabel').value=c.statLabel||mixHex(c.bg,c.ink,0.68);
+  $('#cStatValue').value=c.statValue||c.ink; $('#cStatLabel').value=c.statLabel||mixHex(c.bg,c.ink,0.68); $('#cDate').value=c.date||mixHex(c.bg,c.ink,0.68); $('#cSubtitle').value=c.subtitle||mixHex(c.bg,c.ink,0.68);
   Array.prototype.forEach.call($('#presets').children,function(b){
-    var p=PRESETS[+b.dataset.i];
-    var on=p.bg===c.bg.toLowerCase()&&p.ink===c.ink.toLowerCase()&&p.route===c.route.toLowerCase();
+    var p=allPresets()[+b.dataset.i];
+    var expected={bg:p.bg,ink:p.ink,route:p.route,profile:p.profile||p.ink,highlight:p.highlight||p.ink,statValue:p.statValue||p.ink,statLabel:p.statLabel||mixHex(p.bg,p.ink,0.68),date:p.date||mixHex(p.bg,p.ink,0.68),subtitle:p.subtitle||mixHex(p.bg,p.ink,0.68)};
+    var on=['bg','ink','route','profile','highlight','statValue','statLabel','date','subtitle'].every(function(k){return (expected[k]||'').toLowerCase()===(c[k]||'').toLowerCase();});
     b.setAttribute('aria-pressed',on?'true':'false');
   });
   var hint='';
@@ -1573,14 +1635,102 @@ function syncColorMode(){
 }
 $('#presets').addEventListener('click',function(e){
   var b=e.target.closest('.preset'); if(!b){return;}
-  var p=PRESETS[+b.dataset.i];
-  state.colors={bg:p.bg,ink:p.ink,route:p.route,profile:p.ink,highlight:p.ink,statValue:p.ink,statLabel:mixHex(p.bg,p.ink,0.68)};
-  syncColors(); render();
+  var p=allPresets()[+b.dataset.i];
+  applyPreset(p);presetMessage('Einstellungen „'+p.name+'“ wurden angewendet.');
 });
-[['#cBg','bg'],['#cInk','ink'],['#cRoute','route'],['#cProfile','profile'],['#cHighlight','highlight'],['#cStatValue','statValue'],['#cStatLabel','statLabel']].forEach(function(pair){
+[['#cBg','bg'],['#cInk','ink'],['#cRoute','route'],['#cProfile','profile'],['#cHighlight','highlight'],['#cStatValue','statValue'],['#cStatLabel','statLabel'],['#cDate','date'],['#cSubtitle','subtitle']].forEach(function(pair){
   $(pair[0]).addEventListener('input',function(e){
     state.colors[pair[1]]=e.target.value; syncColors(); render();
   });
+});
+var presetColorKeys=['bg','ink','route','profile','highlight','statValue','statLabel','date','subtitle'];
+var presetStatKeys=['distance','ascent','max','min','elapsed','moving'];
+var vacationStatKeys=['tours','ascent','days','longest','highest','average','elapsed','moving'];
+var presetSettingKeys=['fmt','customWidth','customHeight','printBleedMm','safe','showEle','showStats','stats','statsFontSize','plates','plateOpacity','labelGap','labelMode','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','showTitle','showSubtitle','showRegion','showDate','vacTextSize','vacLabelSize','vacValueSize','vacationStats','vacationStatOrder','map'];
+function currentPresetColors(){
+  var c=state.colors,out={};
+  presetColorKeys.forEach(function(k){out[k]=c[k]||c.ink;});
+  return out;
+}
+function currentPresetSettings(){
+  var out={};presetSettingKeys.forEach(function(k){out[k]=state[k];});
+  out.stats={};presetStatKeys.forEach(function(k){out.stats[k]=!!state.stats[k];});
+  out.vacationStats={};vacationStatKeys.forEach(function(k){out.vacationStats[k]=!!state.vacationStats[k];});
+  out.vacationStatOrder=state.vacationStatOrder.slice();
+  out.map={style:state.map.style,op:state.map.op,gray:state.map.gray,ext:state.map.ext,attr:state.map.attr,maxZ:state.map.maxZ};
+  return out;
+}
+function applyPreset(p){
+  var s=p.settings||{};
+  presetSettingKeys.forEach(function(k){if(s[k]!==undefined){state[k]=s[k];}});
+  var presetColors=p.colors||{bg:p.bg,ink:p.ink,route:p.route,profile:p.profile||p.ink,highlight:p.highlight||p.ink,statValue:p.statValue||p.ink,statLabel:p.statLabel||mixHex(p.bg,p.ink,0.68),date:p.date||mixHex(p.bg,p.ink,0.68),subtitle:p.subtitle||mixHex(p.bg,p.ink,0.68)};
+  state.colors={};presetColorKeys.forEach(function(k){state.colors[k]=presetColors[k];});
+  if(s.stats){state.stats={};presetStatKeys.forEach(function(k){state.stats[k]=!!s.stats[k];});}
+  if(s.vacationStats){state.vacationStats={};vacationStatKeys.forEach(function(k){state.vacationStats[k]=!!s.vacationStats[k];});}
+  if(s.vacationStatOrder){state.vacationStatOrder=s.vacationStatOrder.slice();}
+  if(s.map){state.map=Object.assign({},state.map,s.map);}
+  var numeric={customWidth:[50,1000],customHeight:[50,1000],printBleedMm:[0,10],statsFontSize:[80,180],plateOpacity:[0,100],labelGap:[0,40],hlFontSize:[50,200],titleFontSize:[50,200],subtitleFontSize:[50,200],metaFontSize:[50,200],vacTextSize:[70,160],vacLabelSize:[70,160],vacValueSize:[70,160]};
+  Object.keys(numeric).forEach(function(k){if(!isFinite(+state[k])){state[k]=100;}state[k]=clamp(+state[k],numeric[k][0],numeric[k][1]);});
+  ['safe','showEle','showStats','plates','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){state[k]=!!state[k];});
+  if(['c100','c150','c200','story','feed','sq','custom'].indexOf(state.fmt)<0){state.fmt='c150';}
+  if(['route','profile'].indexOf(state.labelMode)<0){state.labelMode='profile';}
+  $('#customWidth').value=state.customWidth;$('#customHeight').value=state.customHeight;$('#printBleed').value=state.printBleedMm;
+  $('#optSafe').checked=state.safe;$('#optEle').checked=state.showEle;$('#optStats').checked=state.showStats;$('#optPlates').checked=state.plates;
+  $('#statsFont').value=state.statsFontSize;$('#statsFontOut').textContent=state.statsFontSize+' %';$('#plateOpacity').value=state.plateOpacity;$('#plateOpacityOut').textContent=state.plateOpacity+' %';
+  $('#gap').value=state.labelGap;$('#gapOut').textContent=de(state.labelGap,1);$('#hlFont').value=state.hlFontSize;$('#hlFontOut').textContent=state.hlFontSize+' %';
+  [['titleFontSize','titleFontSizeOut'],['subtitleFontSize','subtitleFontSizeOut'],['metaFontSize','metaFontSizeOut'],['vacTextSize','vacTextSizeOut'],['vacLabelSize','vacLabelSizeOut'],['vacValueSize','vacValueSizeOut']].forEach(function(pair){$('#'+pair[0]).value=state[pair[0]];$('#'+pair[1]).textContent=state[pair[0]]+' %';});
+  $('#showTitle').checked=state.showTitle;$('#showSubtitle').checked=state.showSubtitle;$('#showRegion').checked=state.showRegion;$('#showDate').checked=state.showDate;$('#labelMode').value=state.labelMode;
+  $('#mapStyle').value=state.map.style;$('#mapOp').value=state.map.op;$('#mapOpOut').textContent=state.map.op+' %';$('#mapGray').checked=!!state.map.gray;$('#mapExt').value=state.map.ext;$('#mapAttr').checked=!!state.map.attr;
+  $('#statsOptions').querySelectorAll('input[data-stat]').forEach(function(input){input.checked=!!state.stats[input.dataset.stat];});
+  if(typeof vacationSyncStatOptionOrder==='function'){vacationSyncStatOptionOrder();}
+  document.querySelectorAll('.fmtseg button').forEach(function(button){button.setAttribute('aria-pressed',button.dataset.fmt===state.fmt?'true':'false');});
+  syncLabelModeUi();syncStatsUi();syncColors();syncMapUi();applyFormat();render();
+}
+function presetMessage(message,isError){var el=$('#presetHint');el.textContent=message;el.style.color=isError?'#b3261e':'';}
+$('#exportPreset').addEventListener('click',function(){
+  var name=$('#presetName').value.trim()||'Eigenes Farbschema';
+  var payload={format:'wanderposter-preset',version:2,name:name,colors:currentPresetColors(),settings:currentPresetSettings()};
+  var blob=new Blob([JSON.stringify(payload,null,2)+'\n'],{type:'application/json'});
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  var slug=name.toLowerCase().replace(/[^a-z0-9äöüß]+/gi,'-').replace(/^-+|-+$/g,'')||'farbschema';
+  a.href=url;a.download=slug+'.json';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  presetMessage('Preset „'+name+'“ mit Farben, Größen und Optionen wurde exportiert.');
+});
+$('#importPreset').addEventListener('click',function(){$('#presetFile').click();});
+$('#presetFile').addEventListener('change',function(e){
+  var file=e.target.files&&e.target.files[0];if(!file){return;}
+  var reader=new FileReader();
+  reader.onload=function(){
+    try{
+      var data=JSON.parse(String(reader.result));
+      if(!data||!data.colors||!((data.format==='wanderposter-colors'&&data.version===1)||(data.format==='wanderposter-preset'&&data.version===2))){throw new Error('Das ist keine unterstützte Wanderposter-Preset-Datei.');}
+      var name=String(data.name||'Importiertes Farbschema').trim().slice(0,40)||'Importiertes Farbschema';
+      var colors={};
+      presetColorKeys.forEach(function(k){
+        var value=data.colors[k];
+        if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value)){throw new Error('Die Farbe „'+k+'“ fehlt oder ist ungültig.');}
+        colors[k]=value.toLowerCase();
+      });
+      var preset={name:name,colors:colors,settings:data.settings||{}};
+      if(data.settings){
+        var s=data.settings;
+        if(s.fmt!==undefined&&['c100','c150','c200','story','feed','sq','custom'].indexOf(s.fmt)<0){throw new Error('Das Ausgabeformat in der Datei ist ungültig.');}
+        ['safe','showEle','showStats','plates','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){if(s[k]!==undefined&&typeof s[k]!=='boolean'){throw new Error('Die Option „'+k+'“ in der Datei ist ungültig.');}});
+        ['customWidth','customHeight','printBleedMm','statsFontSize','plateOpacity','labelGap','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','vacTextSize','vacLabelSize','vacValueSize'].forEach(function(k){if(s[k]!==undefined&&(!isFinite(+s[k])||typeof s[k]==='boolean')){throw new Error('Der Größenwert „'+k+'“ in der Datei ist ungültig.');}});
+        if(s.labelMode!==undefined&&['route','profile'].indexOf(s.labelMode)<0){throw new Error('Der Beschriftungsabstand in der Datei ist ungültig.');}
+        if(s.stats&&presetStatKeys.some(function(k){return typeof s.stats[k]!=='boolean';})){throw new Error('Die Statistikoptionen in der Datei sind ungültig.');}
+        if(s.vacationStats&&vacationStatKeys.some(function(k){return typeof s.vacationStats[k]!=='boolean';})){throw new Error('Die Urlaubsstatistikoptionen in der Datei sind ungültig.');}
+        if(s.vacationStatOrder&&(!Array.isArray(s.vacationStatOrder)||s.vacationStatOrder.length!==vacationStatKeys.length||vacationStatKeys.some(function(k){return s.vacationStatOrder.indexOf(k)<0;}))){throw new Error('Die Reihenfolge der Urlaubsstatistik ist ungültig.');}
+        if(s.map&&(typeof s.map!=='object'||(s.map.style!==undefined&&['none','osm','topo','light','dark','custom'].indexOf(s.map.style)<0)||(s.map.op!==undefined&&(!isFinite(+s.map.op)||+s.map.op<10||+s.map.op>100))||(s.map.gray!==undefined&&typeof s.map.gray!=='boolean')||(s.map.attr!==undefined&&typeof s.map.attr!=='boolean'))){throw new Error('Die Karteneinstellungen in der Datei sind ungültig.');}
+      }
+      state.customPresets.push(preset);$('#presetName').value=name;
+      renderPresets();applyPreset(preset);presetMessage('Preset „'+name+'“ mit Farben, Größen und Optionen wurde importiert und angewendet.');
+    }catch(err){presetMessage(err.message||'Die Datei konnte nicht gelesen werden.',true);}
+    e.target.value='';
+  };
+  reader.onerror=function(){presetMessage('Die Datei konnte nicht gelesen werden.',true);e.target.value='';};
+  reader.readAsText(file);
 });
 renderPresets(); syncColors(); syncColorMode();
 
