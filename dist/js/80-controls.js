@@ -28,11 +28,13 @@ $('#resetPos').addEventListener('click',function(){
 // ---------- Text and format controls ----------
 state.subtitle=typeof state.subtitle==='string'?state.subtitle:'';
 $('#title').value=state.title; $('#subtitle').value=state.subtitle; $('#showTitle').checked=state.showTitle; $('#showSubtitle').checked=state.showSubtitle;
+$('#activityLogo').value=state.activityLogo||'none';
 $('#titleFontSize').value=state.titleFontSize; $('#titleFontSizeOut').textContent=state.titleFontSize+' %';
 $('#subtitleFontSize').value=state.subtitleFontSize; $('#subtitleFontSizeOut').textContent=state.subtitleFontSize+' %';
 $('#metaFontSize').value=state.metaFontSize; $('#metaFontSizeOut').textContent=state.metaFontSize+' %';
 $('#region').value=state.region; $('#showRegion').checked=state.showRegion; $('#date').value=state.date; $('#showDate').checked=state.showDate;
 $('#title').addEventListener('input',function(e){state.title=e.target.value;render();});
+$('#activityLogo').addEventListener('change',function(e){state.activityLogo=e.target.value;render();});
 $('#showTitle').addEventListener('change',function(e){state.showTitle=e.target.checked;applyFormat();render();});
 $('#titleFontSize').addEventListener('input',function(e){state.titleFontSize=+e.target.value;$('#titleFontSizeOut').textContent=state.titleFontSize+' %';applyFormat();render();});
 $('#subtitle').addEventListener('input',function(e){state.subtitle=e.target.value;applyFormat();render();});
@@ -129,13 +131,13 @@ function renderPresets(){
 }
 function syncColors(){
   var c=state.colors;
-  $('#cBg').value=c.bg; $('#cInk').value=c.ink; $('#cRoute').value=c.route;
+  $('#cBg').value=c.bg; $('#cInk').value=c.ink; $('#cRoute').value=c.route; $('#cStartFlag').value=c.startFlag||c.route; $('#cStageLegend').value=c.stageLegend||c.ink;
   $('#cProfile').value=c.profile||c.ink; $('#cHighlight').value=c.highlight||c.ink;
   $('#cStatValue').value=c.statValue||c.ink; $('#cStatLabel').value=c.statLabel||mixHex(c.bg,c.ink,0.68); $('#cDate').value=c.date||mixHex(c.bg,c.ink,0.68); $('#cSubtitle').value=c.subtitle||mixHex(c.bg,c.ink,0.68);
   Array.prototype.forEach.call($('#presets').children,function(b){
     var p=allPresets()[+b.dataset.i];
-    var expected={bg:p.bg,ink:p.ink,route:p.route,profile:p.profile||p.ink,highlight:p.highlight||p.ink,statValue:p.statValue||p.ink,statLabel:p.statLabel||mixHex(p.bg,p.ink,0.68),date:p.date||mixHex(p.bg,p.ink,0.68),subtitle:p.subtitle||mixHex(p.bg,p.ink,0.68)};
-    var on=['bg','ink','route','profile','highlight','statValue','statLabel','date','subtitle'].every(function(k){return (expected[k]||'').toLowerCase()===(c[k]||'').toLowerCase();});
+    var expected={bg:p.bg,ink:p.ink,route:p.route,startFlag:p.startFlag||p.route,stageLegend:p.stageLegend||p.ink,profile:p.profile||p.ink,highlight:p.highlight||p.ink,statValue:p.statValue||p.ink,statLabel:p.statLabel||mixHex(p.bg,p.ink,0.68),date:p.date||mixHex(p.bg,p.ink,0.68),subtitle:p.subtitle||mixHex(p.bg,p.ink,0.68)};
+    var on=['bg','ink','route','startFlag','stageLegend','profile','highlight','statValue','statLabel','date','subtitle'].every(function(k){return (expected[k]||'').toLowerCase()===(c[k]||'').toLowerCase();});
     b.setAttribute('aria-pressed',on?'true':'false');
   });
   var hint='';
@@ -155,15 +157,15 @@ $('#presets').addEventListener('click',function(e){
   var p=allPresets()[+b.dataset.i];
   applyPreset(p);presetMessage('Einstellungen „'+p.name+'“ wurden angewendet.');
 });
-[['#cBg','bg'],['#cInk','ink'],['#cRoute','route'],['#cProfile','profile'],['#cHighlight','highlight'],['#cStatValue','statValue'],['#cStatLabel','statLabel'],['#cDate','date'],['#cSubtitle','subtitle']].forEach(function(pair){
+[['#cBg','bg'],['#cInk','ink'],['#cRoute','route'],['#cStartFlag','startFlag'],['#cStageLegend','stageLegend'],['#cProfile','profile'],['#cHighlight','highlight'],['#cStatValue','statValue'],['#cStatLabel','statLabel'],['#cDate','date'],['#cSubtitle','subtitle']].forEach(function(pair){
   $(pair[0]).addEventListener('input',function(e){
     state.colors[pair[1]]=e.target.value; syncColors(); render();
   });
 });
-var presetColorKeys=['bg','ink','route','profile','highlight','statValue','statLabel','date','subtitle'];
+var presetColorKeys=['bg','ink','route','startFlag','stageLegend','profile','highlight','statValue','statLabel','date','subtitle'];
 var presetStatKeys=['distance','ascent','max','min','elapsed','moving'];
 var vacationStatKeys=['tours','ascent','days','longest','highest','average','elapsed','moving'];
-var presetSettingKeys=['fmt','customWidth','customHeight','printBleedMm','safe','showEle','showStats','stats','statsFontSize','plates','profilePlate','plateOpacity','labelGap','labelMode','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','showTitle','showSubtitle','showRegion','showDate','vacTextSize','vacLabelSize','vacValueSize','vacationStats','vacationStatOrder'];
+var presetSettingKeys=['fmt','customWidth','customHeight','printBleedMm','safe','showStageFlags','stageLegendPosition','stageLegendFontSize','stageLegendBackground','stageLegendOpacity','activityLogo','showEle','showStats','stats','statsFontSize','plates','profilePlate','plateOpacity','labelGap','labelMode','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','showTitle','showSubtitle','showRegion','showDate','vacTextSize','vacLabelSize','vacValueSize','vacationStats','vacationStatOrder'];
 function currentPresetColors(){
   var c=state.colors,out={};
   presetColorKeys.forEach(function(k){out[k]=c[k]||c.ink;});
@@ -180,16 +182,18 @@ function currentPresetSettings(){
 function applyPreset(p){
   var s=p.settings||{};
   presetSettingKeys.forEach(function(k){if(s[k]!==undefined){state[k]=s[k];}});
-  var presetColors=p.colors||{bg:p.bg,ink:p.ink,route:p.route,profile:p.profile||p.ink,highlight:p.highlight||p.ink,statValue:p.statValue||p.ink,statLabel:p.statLabel||mixHex(p.bg,p.ink,0.68),date:p.date||mixHex(p.bg,p.ink,0.68),subtitle:p.subtitle||mixHex(p.bg,p.ink,0.68)};
-  state.colors={};presetColorKeys.forEach(function(k){state.colors[k]=presetColors[k];});
+  var presetColors=p.colors||{bg:p.bg,ink:p.ink,route:p.route,startFlag:p.route,stageLegend:p.ink,profile:p.profile||p.ink,highlight:p.highlight||p.ink,statValue:p.statValue||p.ink,statLabel:p.statLabel||mixHex(p.bg,p.ink,0.68),date:p.date||mixHex(p.bg,p.ink,0.68),subtitle:p.subtitle||mixHex(p.bg,p.ink,0.68)};
+  state.colors={};presetColorKeys.forEach(function(k){state.colors[k]=presetColors[k]|| (k==='startFlag'?presetColors.route:k==='stageLegend'?presetColors.ink:undefined);});
   if(s.stats){state.stats={};presetStatKeys.forEach(function(k){state.stats[k]=!!s.stats[k];});}
   if(s.vacationStats){state.vacationStats={};vacationStatKeys.forEach(function(k){state.vacationStats[k]=!!s.vacationStats[k];});}
   if(s.vacationStatOrder){state.vacationStatOrder=s.vacationStatOrder.slice();}
   if(s.map){var currentMapView=state.map.view;state.map=Object.assign({},state.map,s.map);state.map.view=currentMapView||{scale:1,x:0,y:0};}
   if(state.map.style==='light'||state.map.style==='dark'){state.map.style='osm';}
-  var numeric={customWidth:[50,1000],customHeight:[50,1000],printBleedMm:[0,10],statsFontSize:[80,180],plateOpacity:[0,100],labelGap:[0,40],hlFontSize:[50,200],titleFontSize:[50,200],subtitleFontSize:[50,200],metaFontSize:[50,200],vacTextSize:[70,160],vacLabelSize:[70,160],vacValueSize:[70,160]};
+  var numeric={customWidth:[50,1000],customHeight:[50,1000],printBleedMm:[0,10],statsFontSize:[80,180],plateOpacity:[0,100],stageLegendFontSize:[70,160],stageLegendOpacity:[0,100],labelGap:[0,40],hlFontSize:[50,200],titleFontSize:[50,200],subtitleFontSize:[50,200],metaFontSize:[50,200],vacTextSize:[70,160],vacLabelSize:[70,160],vacValueSize:[70,160]};
   Object.keys(numeric).forEach(function(k){if(!isFinite(+state[k])){state[k]=100;}state[k]=clamp(+state[k],numeric[k][0],numeric[k][1]);});
-  ['safe','showEle','showStats','plates','profilePlate','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){state[k]=!!state[k];});
+  ['safe','showStageFlags','stageLegendBackground','showEle','showStats','plates','profilePlate','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){state[k]=!!state[k];});
+  if(['none','top','bottom','left','right'].indexOf(state.stageLegendPosition)<0){state.stageLegendPosition='none';}
+  if(['none','hike','run','bike','kayak','sup','swim'].indexOf(state.activityLogo)<0){state.activityLogo='none';}
   if(['c100','c150','c200','story','feed','sq','custom'].indexOf(state.fmt)<0){state.fmt='c150';}
   if(['route','profile'].indexOf(state.labelMode)<0){state.labelMode='profile';}
   $('#customWidth').value=state.customWidth;$('#customHeight').value=state.customHeight;$('#printBleed').value=state.printBleedMm;
@@ -197,7 +201,10 @@ function applyPreset(p){
   $('#statsFont').value=state.statsFontSize;$('#statsFontOut').textContent=state.statsFontSize+' %';$('#plateOpacity').value=state.plateOpacity;$('#plateOpacityOut').textContent=state.plateOpacity+' %';
   $('#gap').value=state.labelGap;$('#gapOut').textContent=de(state.labelGap,1);$('#hlFont').value=state.hlFontSize;$('#hlFontOut').textContent=state.hlFontSize+' %';
   [['titleFontSize','titleFontSizeOut'],['subtitleFontSize','subtitleFontSizeOut'],['metaFontSize','metaFontSizeOut'],['vacTextSize','vacTextSizeOut'],['vacLabelSize','vacLabelSizeOut'],['vacValueSize','vacValueSizeOut']].forEach(function(pair){$('#'+pair[0]).value=state[pair[0]];$('#'+pair[1]).textContent=state[pair[0]]+' %';});
-  $('#showTitle').checked=state.showTitle;$('#showSubtitle').checked=state.showSubtitle;$('#showRegion').checked=state.showRegion;$('#showDate').checked=state.showDate;$('#labelMode').value=state.labelMode;
+  $('#showTitle').checked=state.showTitle;$('#showSubtitle').checked=state.showSubtitle;$('#showRegion').checked=state.showRegion;$('#showDate').checked=state.showDate;$('#showStageFlags').checked=state.showStageFlags;$('#labelMode').value=state.labelMode;
+  $('#activityLogo').value=state.activityLogo;
+  $('#stageLegendPosition').value=state.stageLegendPosition;
+  $('#stageLegendFontSize').value=state.stageLegendFontSize;$('#stageLegendFontSizeOut').textContent=state.stageLegendFontSize+' %';$('#stageLegendBackground').checked=state.stageLegendBackground;$('#stageLegendOpacity').value=state.stageLegendOpacity;$('#stageLegendOpacityOut').textContent=state.stageLegendOpacity+' %';
   $('#mapStyle').value=state.map.style;$('#mapOp').value=state.map.op;$('#mapOpOut').textContent=state.map.op+' %';$('#mapGray').checked=!!state.map.gray;$('#mapExt').value=state.map.ext;$('#mapAttr').checked=!!state.map.attr;
   $('#statsOptions').querySelectorAll('input[data-stat]').forEach(function(input){input.checked=!!state.stats[input.dataset.stat];});
   if(typeof vacationSyncStatOptionOrder==='function'){vacationSyncStatOptionOrder();}
@@ -227,6 +234,8 @@ $('#presetFile').addEventListener('change',function(e){
       var colors={};
       presetColorKeys.forEach(function(k){
         var value=data.colors[k];
+        if(k==='startFlag'&&value===undefined){value=data.colors.route;}
+        if(k==='stageLegend'&&value===undefined){value=data.colors.ink;}
         if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value)){throw new Error('Die Farbe „'+k+'“ fehlt oder ist ungültig.');}
         colors[k]=value.toLowerCase();
       });
@@ -234,8 +243,10 @@ $('#presetFile').addEventListener('change',function(e){
       if(data.settings){
         var s=data.settings;
         if(s.fmt!==undefined&&['c100','c150','c200','story','feed','sq','custom'].indexOf(s.fmt)<0){throw new Error('Das Ausgabeformat in der Datei ist ungültig.');}
-        ['safe','showEle','showStats','plates','profilePlate','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){if(s[k]!==undefined&&typeof s[k]!=='boolean'){throw new Error('Die Option „'+k+'“ in der Datei ist ungültig.');}});
-        ['customWidth','customHeight','printBleedMm','statsFontSize','plateOpacity','labelGap','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','vacTextSize','vacLabelSize','vacValueSize'].forEach(function(k){if(s[k]!==undefined&&(!isFinite(+s[k])||typeof s[k]==='boolean')){throw new Error('Der Größenwert „'+k+'“ in der Datei ist ungültig.');}});
+        ['safe','showStageFlags','stageLegendBackground','showEle','showStats','plates','profilePlate','showTitle','showSubtitle','showRegion','showDate'].forEach(function(k){if(s[k]!==undefined&&typeof s[k]!=='boolean'){throw new Error('Die Option „'+k+'“ in der Datei ist ungültig.');}});
+        if(s.stageLegendPosition!==undefined&&['none','top','bottom','left','right'].indexOf(s.stageLegendPosition)<0){throw new Error('Die Position der Etappenlegende ist ungültig.');}
+        if(s.activityLogo!==undefined&&['none','hike','run','bike','kayak','sup','swim'].indexOf(s.activityLogo)<0){throw new Error('Das Aktivitätssymbol im Preset ist ungültig.');}
+        ['customWidth','customHeight','printBleedMm','statsFontSize','plateOpacity','stageLegendFontSize','stageLegendOpacity','labelGap','hlFontSize','titleFontSize','subtitleFontSize','metaFontSize','vacTextSize','vacLabelSize','vacValueSize'].forEach(function(k){if(s[k]!==undefined&&(!isFinite(+s[k])||typeof s[k]==='boolean')){throw new Error('Der Größenwert „'+k+'“ in der Datei ist ungültig.');}});
         if(s.labelMode!==undefined&&['route','profile'].indexOf(s.labelMode)<0){throw new Error('Der Beschriftungsabstand in der Datei ist ungültig.');}
         if(s.stats&&presetStatKeys.some(function(k){return typeof s.stats[k]!=='boolean';})){throw new Error('Die Statistikoptionen in der Datei sind ungültig.');}
         if(s.vacationStats&&vacationStatKeys.some(function(k){return typeof s.vacationStats[k]!=='boolean';})){throw new Error('Die Urlaubsstatistikoptionen in der Datei sind ungültig.');}

@@ -37,8 +37,23 @@
       <p id="msg" role="status" aria-live="polite"></p>
     </div>
 
+    <div class="group" id="tracksGroup" hidden>
+      <h2 id="tracksHeading">Etappen</h2>
+      <div class="row">
+        <label class="btn primary" id="vacationFilesLabel" for="vacationFiles">Etappen-GPX laden</label>
+        <input type="file" id="vacationFiles" accept=".gpx,application/gpx+xml,application/xml,text/xml" multiple hidden>
+        <button class="btn small" id="clearVacation" type="button">Alle entfernen</button>
+      </div>
+      <p class="hint" id="tracksHint">Je Wandertag eine GPX-Datei laden. Die Etappen werden zusammen dargestellt.</p>
+      <p class="hint" id="vacationMsg" role="status" aria-live="polite"></p>
+      <div id="vacationList"></div>
+    </div>
+
     <div class="group" id="textGroup">
-      <h2>Text</h2>
+      <h2>Texte und Titel</h2>
+      <label class="field">Aktivitätssymbol am Titel
+        <select id="activityLogo"><option value="none">Keins</option><option value="hike">Wandern (hiking)</option><option value="run">Laufen (directions run)</option><option value="bike">Fahrrad (directions bike)</option><option value="kayak">Kajak (kayak)</option><option value="sup">Stand Up Paddle</option><option value="swim">Schwimmen (pool)</option></select>
+      </label>
       <label class="field">Titel<input type="text" id="title" autocomplete="off" placeholder="z. B. Brocken"></label>
       <label class="check"><input type="checkbox" id="showTitle" checked> Titel anzeigen</label>
       <div class="slider"><label for="titleFontSize">Größe des Titels</label><input type="range" id="titleFontSize" min="60" max="160" step="5" value="100"><output id="titleFontSizeOut">100 %</output></div>
@@ -52,20 +67,8 @@
       <div class="slider"><label for="metaFontSize">Größe von Region und Datum</label><input type="range" id="metaFontSize" min="60" max="160" step="5" value="100"><output id="metaFontSizeOut">100 %</output></div>
     </div>
 
-    <div class="group" id="tracksGroup" hidden>
-      <h2>Etappen</h2>
-      <div class="row">
-        <label class="btn primary" for="vacationFiles">GPX-Dateien wählen</label>
-        <input type="file" id="vacationFiles" accept=".gpx,application/gpx+xml,application/xml,text/xml" multiple hidden>
-        <button class="btn small" id="clearVacation" type="button">Alle entfernen</button>
-      </div>
-      <p class="hint" id="tracksHint">Lade für jeden Tag eine GPX-Datei. Die ausgewählten Etappen werden gemeinsam dargestellt.</p>
-      <p class="hint" id="vacationMsg" role="status" aria-live="polite"></p>
-      <div id="vacationList"></div>
-    </div>
-
     <div class="group" id="vacationGroup" hidden>
-      <h2>Statistik</h2>
+      <h2 id="vacationHeading">Statistik</h2>
       <p class="label-line">Kennzahlen im Poster</p>
       <div class="vac-stat-options" id="vacationStatOptions">
         <div class="vac-stat-option" data-vac-stat-item="tours"><span class="vac-drag" draggable="true" title="Ziehen zum Sortieren" aria-label="Touren sortieren">⠿</span><label class="check"><input type="checkbox" data-vac-stat="tours" checked> Touren</label></div>
@@ -95,7 +98,7 @@
     </div>
 
     <div class="group" id="customizeGroup">
-      <h2>Farben und Größen anpassen</h2>
+      <h2>Format und Farben</h2>
       <div id="printOptions">
         <p class="label-line" style="margin-top:0">Leinwandformat</p>
         <div class="seg fmtseg" role="group" aria-label="Leinwandgröße">
@@ -132,6 +135,8 @@
         <label class="color">Hintergrund<input type="color" id="cBg"></label>
         <label class="color">Schrift und Linien<input type="color" id="cInk"></label>
         <label class="color"><span id="colorRouteLabel">Route</span><input type="color" id="cRoute"></label>
+        <label class="color" id="colorStartFlagRow" hidden><span>Startflagge</span><input type="color" id="cStartFlag"></label>
+        <label class="color" id="stageLegendColorRow" hidden>Etappenlegende<input type="color" id="cStageLegend"></label>
         <label class="color" id="colorProfileRow"><span>Höhenprofil</span><input type="color" id="cProfile"></label>
         <label class="color" id="colorHighlightRow"><span>Highlight-Labels</span><input type="color" id="cHighlight"></label>
         <label class="color">Statistikwerte<input type="color" id="cStatValue"></label>
@@ -139,6 +144,11 @@
         <label class="color">Datum<input type="color" id="cDate"></label>
         <label class="color">Unterüberschrift<input type="color" id="cSubtitle"></label>
       </div>
+      <label class="check" id="stageFlagsRow" hidden><input type="checkbox" id="showStageFlags" checked> Start- und Zielflaggen anzeigen</label>
+      <div class="field" id="stageLegendRow" hidden><label for="stageLegendPosition">Legendenposition</label><select id="stageLegendPosition"><option value="none">Ausblenden</option><option value="top">Oben</option><option value="bottom">Unten</option><option value="left">Links</option><option value="right">Rechts</option></select></div>
+      <div class="slider" id="stageLegendSizeRow" hidden><label for="stageLegendFontSize">Legendentextgröße</label><input type="range" id="stageLegendFontSize" min="70" max="160" step="5" value="100"><output id="stageLegendFontSizeOut">100 %</output></div>
+      <label class="check" id="stageLegendBackgroundRow" hidden><input type="checkbox" id="stageLegendBackground" checked> Legendenbox anzeigen</label>
+      <div class="slider" id="stageLegendOpacityRow" hidden><label for="stageLegendOpacity">Legendenbox-Deckkraft</label><input type="range" id="stageLegendOpacity" min="0" max="100" step="5" value="85"><output id="stageLegendOpacityOut">85 %</output></div>
       <p class="hint" id="contrastHint" style="color:var(--accent)"></p>
       <label class="check" id="optEleRow"><input type="checkbox" id="optEle" checked> Höhe an den Highlights anzeigen</label>
       <label class="check" id="optStatsRow"><input type="checkbox" id="optStats" checked> Kennzahlen unten anzeigen</label>

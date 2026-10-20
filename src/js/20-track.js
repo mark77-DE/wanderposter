@@ -86,10 +86,10 @@ function buildTrack(raw){
       if(speed>=0.5&&speed<=15){movingTime+=dt;}
     }
   }
-  var t0=timed.length?timed[0].t:null, date='';
+  var t0=timed.length?timed[0].t:null, t1=timed.length?timed[timed.length-1].t:null, date='';
   if(t0!=null){var dt=new Date(t0); date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
   var closed=Math.hypot(s[0].px-s[n].px,s[0].py-s[n].py)*kcos<150;
-  return {s:s,total:total,ascent:ascent,descent:descent,minE:minE,maxE:maxE,hasEle:hasEle,elapsed:elapsed,movingTime:movingTime,hasTime:elapsed!=null,date:date,closed:closed,lat0:lat0,lon0:lon0,y0:y0,kcos:kcos,toXY:toXY,toLL:toLL};
+  return {s:s,total:total,ascent:ascent,descent:descent,minE:minE,maxE:maxE,hasEle:hasEle,elapsed:elapsed,movingTime:movingTime,hasTime:elapsed!=null,startTime:t0,endTime:t1,date:date,closed:closed,lat0:lat0,lon0:lon0,y0:y0,kcos:kcos,toXY:toXY,toLL:toLL};
 }
 
 function demoRaw(){

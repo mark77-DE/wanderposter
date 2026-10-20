@@ -39,8 +39,8 @@ var isoToday=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+
 
 var state={
   track:null, posterMode:'route', vacationTracks:[], nextVacationId:1, vacationStats:{tours:true,ascent:true,days:true,longest:true,highest:true,average:true,elapsed:true,moving:true}, vacationStatOrder:['tours','ascent','longest','moving','days','highest','average','elapsed'], title:'Brocken-Runde', region:'Harz', date:isoToday,
-  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c',date:'#60736c',subtitle:'#60736c'}, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
-  hl:[], nextId:1, addMode:false, posMode:false, mapPosMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17,view:{scale:1,x:0,y:0}}, labelGap:9, labelMode:'profile', hlFontSize:100, titleFontSize:100, subtitleFontSize:100, metaFontSize:100, showTitle:true, showSubtitle:true, showRegion:true, showDate:true, profilePlate:false, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
+  fmt:'c150', customWidth:100, customHeight:100, printBleedMm:0, safe:true, colors:{bg:'#ffffff',ink:'#1e3530',route:'#c4392d',startFlag:'#c4392d',stageLegend:'#1e3530',profile:'#1e3530',highlight:'#1e3530',statValue:'#1e3530',statLabel:'#60736c',date:'#60736c',subtitle:'#60736c'}, showStageFlags:true, stageLegendPosition:'none', stageLegendFontSize:100, stageLegendBackground:true, stageLegendOpacity:85, showEle:true, showStats:true, stats:{distance:true,ascent:true,max:true,min:true,elapsed:true,moving:true}, statsFontSize:130, plates:true, plateOpacity:94,
+  hl:[], nextId:1, addMode:false, posMode:false, mapPosMode:false, bg:null, map:{style:'none',op:70,gray:false,ext:'box',attr:true,url:'',attrText:'',maxZ:17,view:{scale:1,x:0,y:0}}, labelGap:9, labelMode:'profile', hlFontSize:100, titleFontSize:100, subtitleFontSize:100, metaFontSize:100, activityLogo:'none', showTitle:true, showSubtitle:true, showRegion:true, showDate:true, profilePlate:false, vacTextSize:100, vacLabelSize:100, vacValueSize:100, mapB:LAY.mapB
 };
 
 // ---------- Formats ----------
@@ -69,6 +69,7 @@ function fmt(){
   return base;
 }
 function titleFs(){return (fmt().print?TITLE_FS:TITLE_FS*1.15)*state.titleFontSize/100;}
+function titleStartX(){return M+(state.activityLogo&&state.activityLogo!=='none'?Math.max(4.2,titleFs()*.76)+1.2:0);}
 function subtitleFs(){return sc(2.2*state.subtitleFontSize/100);}
 function metaFs(){return sc(2.8*state.metaFontSize/100);}
 function subtitleY(){return state.showTitle?LAY.titleY+titleFs()*.68+sc(.4):LAY.titleY;}

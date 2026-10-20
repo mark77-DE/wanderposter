@@ -1,8 +1,8 @@
 // Wander-Poster service worker: app files are cached for offline use, map tiles and Overpass always go to the network.
-var BUILD='20261018205115';
+var BUILD='20261020081610';
 var CACHE='wander-poster-'+BUILD;
 var SHARED='wander-poster-shared';
-var ASSETS=["./", "index.html", "manifest.webmanifest", "css/style.css?v=20261018205115", "js/00-fonts.js?v=20261018205115", "js/10-core.js?v=20261018205115", "js/20-track.js?v=20261018205115", "js/30-geometry.js?v=20261018205115", "js/31-render.js?v=20261018205115", "js/40-highlights.js?v=20261018205115", "js/50-osm.js?v=20261018205115", "js/55-vacation.js?v=20261018205115", "js/60-background.js?v=20261018205115", "js/61-map.js?v=20261018205115", "js/70-interaction.js?v=20261018205115", "js/80-controls.js?v=20261018205115", "js/90-export.js?v=20261018205115", "js/98-start.js?v=20261018205115", "js/99-pwa.js?v=20261018205115", "impressum.html", "datenschutz.html", "nutzung.html", "web-icons/apple-touch-icon.png", "web-icons/icon-192.png", "web-icons/icon-512.png", "web-icons/icon-maskable-512.png"];
+var ASSETS=["./", "index.html", "manifest.webmanifest", "css/style.css?v=20261020081610", "js/00-fonts.js?v=20261020081610", "js/10-core.js?v=20261020081610", "js/20-track.js?v=20261020081610", "js/30-geometry.js?v=20261020081610", "js/31-render.js?v=20261020081610", "js/40-highlights.js?v=20261020081610", "js/50-osm.js?v=20261020081610", "js/55-vacation.js?v=20261020081610", "js/60-background.js?v=20261020081610", "js/61-map.js?v=20261020081610", "js/70-interaction.js?v=20261020081610", "js/80-controls.js?v=20261020081610", "js/90-export.js?v=20261020081610", "js/98-start.js?v=20261020081610", "js/99-pwa.js?v=20261020081610", "impressum.html", "datenschutz.html", "nutzung.html", "web-icons/apple-touch-icon.png", "web-icons/icon-192.png", "web-icons/icon-512.png", "web-icons/icon-maskable-512.png"];
 
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS);}).then(function(){return self.skipWaiting();}));
