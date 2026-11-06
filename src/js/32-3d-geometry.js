@@ -31,12 +31,12 @@ function buildGeographic3MFGeometry(track, routeWidthMm) {
     var a=i*4,b=(i+1)*4;
     quad(a,a+1,b+1,b);             // upper surface
     quad(a+2,b+2,b+3,a+3);          // underside
-    quad(a,a+2,b+2,b);              // left wall
-    quad(a+1,b+1,b+3,a+3);          // right wall
+    quad(a,b,b+2,a+2);              // left wall, outward winding
+    quad(a+1,a+3,b+3,b+1);          // right wall, outward winding
   }
-  quad(0,1,3,2);
+  quad(0,2,3,1);                    // start cap
   var last=(route.length-1)*4;
-  quad(last,last+2,last+3,last+1);
+  quad(last,last+1,last+3,last+2); // end cap
   var halfW=modelWidth/2, halfD=modelDepth/2, baseV=[
     [-halfW,-halfD,0],[halfW,-halfD,0],[halfW,halfD,0],[-halfW,halfD,0],
     [-halfW,-halfD,baseThickness],[halfW,-halfD,baseThickness],[halfW,halfD,baseThickness],[-halfW,halfD,baseThickness]
