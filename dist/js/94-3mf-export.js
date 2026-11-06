@@ -63,9 +63,23 @@ function drawModelPreview(){
   var g=modelView.geometry;if(!g){ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim()||'#555';ctx.font=(14*devicePixelRatio)+'px system-ui';ctx.textAlign='center';ctx.fillText('Zuerst eine GPX-Route mit Höhenangaben laden',w/2,h/2);return;}
   var meshes=[];if(g.base)meshes.push(g.base);meshes.push(g.route);var verts=[],faces=[];
   meshes.forEach(function(m){var off=verts.length;m.vertices.forEach(v=>verts.push(v));m.triangles.forEach(t=>faces.push([t[0]+off,t[1]+off,t[2]+off]));});
+  // Die exportierte Geometrie liegt bereits um X/Y = 0 zentriert.
+  // Den tatsächlichen Bounding-Box-Mittelpunkt verwenden, statt nochmals
+  // die halbe Modellbreite/-tiefe abzuziehen (das verschiebt den Orbit-Pivot).
+  var bounds={minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity,minZ:Infinity,maxZ:-Infinity};
+  verts.forEach(function(v){bounds.minX=Math.min(bounds.minX,v[0]);bounds.maxX=Math.max(bounds.maxX,v[0]);bounds.minY=Math.min(bounds.minY,v[1]);bounds.maxY=Math.max(bounds.maxY,v[1]);bounds.minZ=Math.min(bounds.minZ,v[2]);bounds.maxZ=Math.max(bounds.maxZ,v[2]);});
+  var centerX=(bounds.minX+bounds.maxX)/2,centerY=(bounds.minY+bounds.maxY)/2,centerZ=(bounds.minZ+bounds.maxZ)/2;
   var cy=Math.cos(modelView.yaw),sy=Math.sin(modelView.yaw),cp=Math.cos(modelView.pitch),sp=Math.sin(modelView.pitch);
-  var p=verts.map(function(v){var x=v[0]-g.width/2,y=v[1]-g.depth/2,z=v[2]-g.height/2,x1=x*cy-y*sy,y1=x*sy+y*cy;return {x:x1,y:y1*cp-z*sp,z:y1*sp+z*cp};});
-  var scale=Math.min(w,h)*.72/Math.max(g.width,g.depth,g.height)*modelView.zoom,cx=w/2+modelView.panX*devicePixelRatio,cz=h/2+modelView.panY*devicePixelRatio,baseCount=g.base?g.base.vertices.length:0;
+  var p=verts.map(function(v){var x=v[0]-centerX,y=v[1]-centerY,z=v[2]-centerZ,x1=x*cy-y*sy,y1=x*sy+y*cy;return {x:x1,y:y1*cp-z*sp,z:y1*sp+z*cp};});
+  // Nach der Rotation erneut die projizierte Ausdehnung bestimmen und exakt
+  // in der Canvas-Mitte platzieren. So bleibt das Modell auch bei Drehung mittig.
+  var projected={minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity};
+  p.forEach(function(v){projected.minX=Math.min(projected.minX,v.x);projected.maxX=Math.max(projected.maxX,v.x);projected.minY=Math.min(projected.minY,v.y);projected.maxY=Math.max(projected.maxY,v.y);});
+  var projectedW=Math.max(.001,projected.maxX-projected.minX),projectedH=Math.max(.001,projected.maxY-projected.minY);
+  var scale=Math.min(w*.78/projectedW,h*.78/projectedH)*modelView.zoom;
+  var cx=w/2-(projected.minX+projected.maxX)/2*scale+modelView.panX*devicePixelRatio;
+  var cz=h/2+(projected.minY+projected.maxY)/2*scale+modelView.panY*devicePixelRatio;
+  var baseCount=g.base?g.base.vertices.length:0;
   faces.map(function(f){var a=p[f[0]],b=p[f[1]],c=p[f[2]],ux=b.x-a.x,uy=b.y-a.y,vx=c.x-a.x,vy=c.y-a.y,nz=ux*vy-uy*vx,shade=Math.max(.28,Math.min(1,.48+Math.abs(nz)/(Math.hypot(ux,uy)*Math.hypot(vx,vy)||1)*.5));return {f:f,z:(a.z+b.z+c.z)/3,shade:shade};}).sort((a,b)=>a.z-b.z).forEach(function(t){
     var a=p[t.f[0]],b=p[t.f[1]],c=p[t.f[2]],route=t.f[0]>=baseCount,rgb=route?[213,107,67]:[174,187,178];ctx.beginPath();ctx.moveTo(cx+a.x*scale,cz-a.y*scale);ctx.lineTo(cx+b.x*scale,cz-b.y*scale);ctx.lineTo(cx+c.x*scale,cz-c.y*scale);ctx.closePath();ctx.fillStyle='rgb('+rgb.map(v=>Math.round(v*t.shade)).join(',')+')';ctx.fill();ctx.strokeStyle='rgba(30,45,40,.16)';ctx.lineWidth=Math.max(.5,devicePixelRatio*.4);ctx.stroke();
   });
