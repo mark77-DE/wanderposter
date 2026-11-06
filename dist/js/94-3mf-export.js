@@ -31,11 +31,14 @@ function meshXml3mf(mesh, id, name){
   return out+'</triangles></mesh></object>';
 }
 function geographic3mfBlob(geometry){
+  var objects=geometry.withBase
+    ?meshXml3mf(geometry.base,1,'Grundplatte')+meshXml3mf(geometry.route,2,'Höhenroute')
+    :meshXml3mf(geometry.route,1,'Höhenroute');
+  var build=geometry.withBase?'<item objectid="1"/><item objectid="2"/>':'<item objectid="1"/>';
   var model='<?xml version="1.0" encoding="UTF-8"?>'+
     '<model xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" unit="millimeter" xml:lang="de-DE">'+
     '<metadata name="Title">Wander-Poster – geografisches Höhenrelief</metadata>'+
-    '<resources>'+meshXml3mf(geometry.base,1,'Grundplatte')+meshXml3mf(geometry.route,2,'Höhenroute')+
-    '</resources><build><item objectid="1"/><item objectid="2"/></build></model>';
+    '<resources>'+objects+'</resources><build>'+build+'</build></model>';
   var types='<?xml version="1.0" encoding="UTF-8"?>'+
     '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
     '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
@@ -45,16 +48,34 @@ function geographic3mfBlob(geometry){
     '<Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>';
   return zipStore3mf([{name:'[Content_Types].xml',data:types},{name:'_rels/.rels',data:rels},{name:'3D/3dmodel.model',data:model}]);
 }
-$('#exp3mf').addEventListener('click',function(){
-  var status=$('#model3mfStatus');
+function setModelMode(active){
+  var ids=['routeGroup','tracksGroup','modelGroup','textGroup','vacationGroup','customizeGroup','backgroundGroup','mapGroup','highlightsGroup','exportGroup'];
+  ids.forEach(function(id){var el=document.getElementById(id);if(el){el.hidden=active?!(id==='routeGroup'||id==='modelGroup'):el.hidden;}});
+  if(active){
+    ['routeMode','stagesMode','vacationMode'].forEach(function(id){document.getElementById(id).setAttribute('aria-pressed','false');});
+    document.getElementById('modelMode').setAttribute('aria-pressed','true');
+    document.getElementById('lead').textContent='GPX laden und als geografisches 3D-Höhenrelief für den 3D-Druck exportieren.';
+  }else{
+    document.getElementById('modelMode').setAttribute('aria-pressed','false');
+  }
+}
+document.getElementById('modelMode').addEventListener('click',function(){setModelMode(true);});
+document.getElementById('modelBaseEnabled').addEventListener('change',function(){
+  document.getElementById('modelBaseMarginField').hidden=!this.checked;
+});
+document.getElementById('exp3mf').addEventListener('click',function(){
+  var status=document.getElementById('model3mfStatus');
   try{
     if(!state.track){throw new Error('Bitte zuerst eine Route laden.');}
-    var width=Number($('#modelRouteWidth').value);
+    var width=Number(document.getElementById('modelRouteWidth').value);
     if(!isFinite(width)||width<0.6||width>5){throw new Error('Die Routenbreite muss zwischen 0,6 und 5,0 mm liegen.');}
-    var g=buildGeographic3MFGeometry(state.track,width);
+    var withBase=document.getElementById('modelBaseEnabled').checked;
+    var margin=withBase?Number(document.getElementById('modelBaseMargin').value):0;
+    if(withBase&&(!isFinite(margin)||margin<0||margin>20)){throw new Error('Der Rand muss zwischen 0 und 20 mm liegen.');}
+    var g=buildGeographic3MFGeometry(state.track,width,{withBase:withBase,marginMm:margin});
     var blob=geographic3mfBlob(g),name=(state.title||'wanderung').toLowerCase().replace(/[^a-z0-9äöüß]+/g,'-').replace(/^-+|-+$/g,'')||'wanderung';
-    saveFile(name+'-geografisch.3mf',blob);
-    status.textContent='3MF erstellt: '+g.width.toFixed(1)+' × '+g.depth.toFixed(1)+' mm, Grundplatte '+g.height.toFixed(1)+' mm max., Route '+width.toFixed(1)+' mm breit.';
+    saveFile(name+(withBase?'-3d-mit-grundplatte.3mf':'-3d-route-ohne-grundplatte.3mf'),blob);
+    status.textContent='3MF erstellt: '+g.width.toFixed(1)+' × '+g.depth.toFixed(1)+' mm, '+(withBase?'mit '+g.baseMargin.toFixed(1)+' mm Rand und 2 mm Grundplatte':'ohne Grundplatte')+', Route '+width.toFixed(1)+' mm breit.';
     status.style.color=width<1?'#b3261e':'';
     if(width<1){status.textContent+=' Hinweis: Unter 1,0 mm kann die Route mit einer 0,4-mm-Düse schwer zuverlässig druckbar sein.';}
   }catch(err){status.textContent=err.message||'3MF-Export fehlgeschlagen.';status.style.color='#b3261e';}
