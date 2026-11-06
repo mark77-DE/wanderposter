@@ -58,7 +58,7 @@ svg.addEventListener('pointercancel',endDrag);
 // ---------- Loading tracks ----------
 function loadRaw(raw,name){
   var t=buildTrack(raw);
-  state.track=t; state.mapB=LAY.mapB; state.hl=[]; state.osm=[]; mapReset(); setAddMode(false); syncLabelModeUi(); syncStatsUi();
+  state.track=t; if(typeof buildModelPreview==='function'&&document.getElementById('modelViewer')&&!document.getElementById('modelViewer').hidden){buildModelPreview();} state.mapB=LAY.mapB; state.hl=[]; state.osm=[]; mapReset(); setAddMode(false); syncLabelModeUi(); syncStatsUi();
   if(t.date){state.date=t.date;$('#date').value=t.date;}
   var info=de(t.total/1000,1)+' km';
   if(t.hasEle){info+=', '+de(t.ascent)+' Höhenmeter';}
