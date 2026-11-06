@@ -16,8 +16,11 @@
 <body>
 <div class="app">
   <section class="stage" id="stage" aria-label="Vorschau">
-    <div class="poster-wrap">
-      <svg id="poster" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Poster-Vorschau"></svg>
+    <div class="poster-wrap" id="posterPreview"><svg id="poster" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Poster-Vorschau"></svg></div>
+    <div class="model-viewer" id="modelViewer" hidden>
+      <canvas id="modelCanvas" aria-label="Interaktive 3D-Modellvorschau" role="img"></canvas>
+      <div class="model-viewer-tools"><button class="btn small" id="modelViewReset" type="button">Ansicht zurücksetzen</button><button class="btn small" id="modelViewTop" type="button">Draufsicht</button></div>
+      <p class="caption">Ziehen: drehen · Mausrad oder Pinch: zoomen · Shift + Ziehen: verschieben</p>
     </div>
     <p class="caption" id="caption"></p>
   </section>
@@ -25,12 +28,10 @@
   <aside class="panel">
     <h1>Wander-Poster</h1>
     <p class="lead" id="lead">GPX laden, Titel eintragen, Highlights platzieren, als Bild exportieren.</p>
-    <div class="mode-tabs" role="group" aria-label="Posterart">
-      <button class="btn" id="routeMode" type="button" aria-pressed="true">Routenposter</button>
-      <button class="btn" id="stagesMode" type="button" aria-pressed="false">Mehrtagestour</button>
-      <button class="btn" id="vacationMode" type="button" aria-pressed="false">Urlaubsstatistik</button>
-      <button class="btn" id="modelMode" type="button" aria-pressed="false">3D-Modell</button>
-    </div>
+    <label class="mode-select-label" for="modeSelect">Arbeitsbereich</label>
+    <select class="mode-select" id="modeSelect" aria-label="Arbeitsbereich">
+      <option value="route">Routenposter</option><option value="stages">Mehrtagestour</option><option value="vacation">Urlaubsstatistik</option><option value="model">3D-Modell</option>
+    </select>
 
     <div class="group" id="routeGroup">
       <h2>Route</h2>
@@ -292,14 +293,19 @@
     </div>
 
     <div class="group" id="modelGroup" hidden>
-      <h2>Geografisches 3D-Modell</h2>
-      <p class="hint">Erstellt aus der geladenen GPX-Route ein maßstäbliches Höhenrelief. Die Höhe wird aus den GPX-Höhendaten übernommen und auf 8 mm Reliefhöhe normiert.</p>
-      <label class="field" style="margin-top:12px">3D-Routenbreite (mm)<input type="number" id="modelRouteWidth" min="0.6" max="5" step="0.1" value="1.2"></label>
+      <h2>3D-Modell konfigurieren</h2><p class="hint">Die Vorschau wird bei Änderungen automatisch aktualisiert. Das Modell wird aus den GPX-Koordinaten und Höhenwerten erzeugt.</p>
+      <div class="model-settings-grid">
+        <label class="field">Maximale Länge/Breite (mm)<input type="number" id="modelSize" min="50" max="250" step="5" value="150"></label>
+        <label class="field">Routenbreite (mm)<input type="number" id="modelRouteWidth" min="0.6" max="5" step="0.1" value="1.2"></label>
+        <label class="field">Reliefhöhe (mm)<input type="number" id="modelRelief" min="1" max="30" step="0.5" value="8"></label>
+        <label class="field">Routenstärke (mm)<input type="number" id="modelRouteThickness" min="0.4" max="5" step="0.1" value="1"></label>
+        <label class="field">Grundplattendicke (mm)<input type="number" id="modelBaseThickness" min="0.8" max="8" step="0.2" value="2"></label>
+        <label class="field">Rand um die Route (mm)<input type="number" id="modelBaseMargin" min="0" max="20" step="0.5" value="3"></label>
+      </div>
       <label class="check"><input type="checkbox" id="modelBaseEnabled" checked> Grundplatte hinzufügen</label>
-      <label class="field" id="modelBaseMarginField">Rand um die Route (mm)<input type="number" id="modelBaseMargin" min="0" max="20" step="0.5" value="3"></label>
-      <p class="hint">Der Rand wird rund um die äußere Kante der Route gemessen. Die maximale Gesamtgröße inklusive Rand beträgt 150 mm. Ohne Grundplatte wird nur die erhabene Route exportiert.</p>
-      <button class="btn primary" id="exp3mf" type="button">3D-Modell als 3MF exportieren</button>
-      <p class="hint" id="model3mfStatus" role="status" aria-live="polite"></p>
+      <p class="hint">Die maximale Länge/Breite bezieht sich auf das gesamte Modell inklusive Rand. Höhenwerte werden auf die eingestellte Reliefhöhe normiert.</p>
+      <div class="row" style="margin-top:12px"><button class="btn primary" id="exp3mf" type="button">3MF exportieren</button><button class="btn" id="modelReset" type="button">Standardwerte</button></div>
+      <p class="hint" id="modelDimensions" role="status" aria-live="polite"></p><p class="hint" id="model3mfStatus" role="status" aria-live="polite"></p>
     </div>
 
     <div class="group" id="exportGroup">
