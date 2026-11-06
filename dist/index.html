@@ -297,6 +297,13 @@
         <button class="btn" id="expSvg" type="button">SVG</button>
         <button class="btn" id="shareBtn" type="button" hidden>Teilen …</button>
       </div>
+      <div class="field" style="margin-top:12px">
+        <label for="modelRouteWidth">3D-Routenbreite (mm)</label>
+        <input type="number" id="modelRouteWidth" min="0.6" max="5" step="0.1" value="1.2">
+      </div>
+      <button class="btn primary" id="exp3mf" type="button">Geografisches 3D-Modell (3MF)</button>
+      <p class="hint">Erstellt ein 150 mm breites Modell mit höhenabhängigem Relief (8 mm) und 2 mm Grundplatte. Die Tiefe folgt automatisch dem Seitenverhältnis der Route. Für eine 0,4-mm-Düse sind 1,2 mm Routenbreite ein guter Startwert.</p>
+      <p class="hint" id="model3mfStatus" role="status" aria-live="polite"></p>
       <p class="hint">PNG ist für den Druck am sichersten, die Schrift ist dort fest eingebettet.</p>
     </div>
   </aside>
@@ -337,6 +344,8 @@
 <script src="js/70-interaction.js?v=20261020081610"></script>
 <script src="js/80-controls.js?v=20261020081610"></script>
 <script src="js/90-export.js?v=20261020081610"></script>
+<script src="js/32-3d-geometry.js?v=20261106120000"></script>
+<script src="js/94-3mf-export.js?v=20261106120000"></script>
 <script src="js/98-start.js?v=20261020081610"></script>
 <script src="js/99-pwa.js?v=20261020081610"></script>
 </body>
