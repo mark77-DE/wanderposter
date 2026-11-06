@@ -48,9 +48,12 @@ function geographic3mfBlob(geometry){
     '<Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>';
   return zipStore3mf([{name:'[Content_Types].xml',data:types},{name:'_rels/.rels',data:rels},{name:'3D/3dmodel.model',data:model}]);
 }
+var modelModePreviousHidden=null;
 function setModelMode(active){
   var ids=['routeGroup','tracksGroup','modelGroup','textGroup','vacationGroup','customizeGroup','backgroundGroup','mapGroup','highlightsGroup','exportGroup'];
-  ids.forEach(function(id){var el=document.getElementById(id);if(el){el.hidden=active?!(id==='routeGroup'||id==='modelGroup'):el.hidden;}});
+  if(active&&!modelModePreviousHidden){modelModePreviousHidden={};ids.forEach(function(id){var el=document.getElementById(id);if(el){modelModePreviousHidden[id]=el.hidden;}});}
+  if(active){ids.forEach(function(id){var el=document.getElementById(id);if(el){el.hidden=id!=='routeGroup'&&id!=='modelGroup';}});}
+  else if(modelModePreviousHidden){ids.forEach(function(id){var el=document.getElementById(id);if(el&&Object.prototype.hasOwnProperty.call(modelModePreviousHidden,id)){el.hidden=modelModePreviousHidden[id];}});modelModePreviousHidden=null;}
   if(active){
     ['routeMode','stagesMode','vacationMode'].forEach(function(id){document.getElementById(id).setAttribute('aria-pressed','false');});
     document.getElementById('modelMode').setAttribute('aria-pressed','true');
