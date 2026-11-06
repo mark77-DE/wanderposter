@@ -21,14 +21,14 @@ function buildGeographic3MFGeometry(track, routeWidthMm, options) {
   var route=[];
   var minE=Infinity,maxE=-Infinity;
   points.forEach(function(p){minE=Math.min(minE,p.e);maxE=Math.max(maxE,p.e);});
-  var elevSpan=maxE-minE, routeBottom=withBase?baseThickness-0.2:0;
+  var elevSpan=maxE-minE, routeBottom=withBase?baseThickness-0.2:0, routeTopBase=withBase?baseThickness:0, routeBody=1;
   for(var i=0;i<points.length;i++){
     var prev=points[Math.max(0,i-1)], next=points[Math.min(points.length-1,i+1)];
     var dx=(next.px-prev.px)*scale, dy=(next.py-prev.py)*scale, len=Math.hypot(dx,dy)||1;
     var nx=-dy/len, ny=dx/len;
     var cx=(points[i].px-(minX+maxX)/2)*scale;
     var cy=(points[i].py-(minY+maxY)/2)*scale;
-    var z=baseThickness+(elevSpan>0.01?(points[i].e-minE)/elevSpan*relief:relief/2);
+    var z=routeTopBase+routeBody+(elevSpan>0.01?(points[i].e-minE)/elevSpan*relief:relief/2);
     var half=routeWidthMm/2;
     route.push({
       tl:[cx+nx*half,cy+ny*half,z], tr:[cx-nx*half,cy-ny*half,z],
@@ -58,6 +58,6 @@ function buildGeographic3MFGeometry(track, routeWidthMm, options) {
     base={vertices:baseV,triangles:baseT};
   }
   return {route:{vertices:vertices,triangles:triangles},base:base,
-    width:modelWidth,depth:modelDepth,height:baseThickness+relief,routeWidth:routeWidthMm,
+    width:modelWidth,depth:modelDepth,height:routeTopBase+routeBody+relief,routeWidth:routeWidthMm,
     baseMargin:margin,withBase:withBase};
 }
