@@ -21,10 +21,10 @@ Läuft komplett im Browser, es gibt keinen Server-Teil.
 - `css/style.css` – Aussehen
 - `js/` – der Code, in Reihenfolge der Nummern geladen:
   `00-fonts` Schrift (wird beim Build aus `fonts/*.woff2` erzeugt) · `10-core` Konstanten, Formate, Hilfsfunktionen ·
-  `20-track` GPX lesen, Projektion · `30-geometry` Karten- und Profilgeometrie · `31-render` Zeichnen des Posters ·
+  `20-track` GPX lesen, Projektion · `30-geometry` Karten- und Profilgeometrie · `31-render` Zeichnen des Posters · `32-3d-geometry` geografisches 3D-Routenmesh ·
   `40-highlights` Highlights, Gipfelerkennung · `50-osm` OpenStreetMap-Vorschläge · `60-background` Hintergrundbild ·
   `61-map` Kartenhintergrund (Kacheln) · `70-interaction` Ziehen, Route laden · `80-controls` Eingabefelder, Farben ·
-  `90-export` PNG/SVG/Teilen · `98-start` Startcode · `99-pwa` Web-App-Anbindung (nur in `dist/`)
+  `90-export` PNG/SVG/Teilen · `94-3mf-export` 3MF-Druckexport · `98-start` Startcode · `99-pwa` Web-App-Anbindung (nur in `dist/`)
   `45-stubs` ersetzt `50-osm` und `61-map` in der Einzeldatei ohne Fremdserver-Funktionen.
 - `pwa/` – `manifest.webmanifest`, `sw.template.js` (Service Worker), Quell-Icons in `icons/` (werden als `web-icons/` ausgeliefert)
 
