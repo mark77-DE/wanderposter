@@ -6,13 +6,15 @@ function buildGeographic3MFGeometry(track, routeWidthMm, options) {
   if (!track || !track.s || track.s.length < 2) throw new Error('Bitte zuerst eine Route laden.');
   if (!track.hasEle) throw new Error('Die GPX-Datei enthält keine ausreichenden Höhenangaben.');
   if(!isFinite(margin)||margin<0||margin>20) throw new Error('Der Rand muss zwischen 0 und 20 mm liegen.');
+  if(!isFinite(maxSize)||maxSize<50||maxSize>250) throw new Error('Die Modellgröße muss zwischen 50 und 250 mm liegen.');
+  if(!isFinite(relief)||relief<1||relief>30||!isFinite(routeThickness)||routeThickness<0.4||routeThickness>5||!isFinite(baseThickness)||baseThickness<0.8||baseThickness>8) throw new Error('Bitte die 3D-Höhen- und Stärkewerte prüfen.');
   var points = track.s, minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
   points.forEach(function(p){ minX=Math.min(minX,p.px); maxX=Math.max(maxX,p.px); minY=Math.min(minY,p.py); maxY=Math.max(maxY,p.py); });
   var spanX=maxX-minX, spanY=maxY-minY, maxSpan=Math.max(spanX,spanY);
   if (!isFinite(maxSpan) || maxSpan <= 0) throw new Error('Die Routengeometrie ist ungültig.');
-  var baseThickness=withBase?2:0, relief=8;
-  var outerPad=margin+(withBase?routeWidthMm/2:routeWidthMm/2);
-  var available=150-2*outerPad;
+  var baseThickness=withBase?Number(options.baseThicknessMm??2):0, relief=Number(options.reliefHeightMm??8), maxSize=Number(options.maxSizeMm??150), routeThickness=Number(options.routeThicknessMm??1);
+  var outerPad=margin+routeWidthMm/2;
+  var available=maxSize-2*outerPad;
   if(available<=0) throw new Error('Der Rand ist für diese Routenbreite zu groß.');
   var scale=available/maxSpan;
   var routeExtentW=spanX*scale+routeWidthMm, routeExtentD=spanY*scale+routeWidthMm;
@@ -21,7 +23,7 @@ function buildGeographic3MFGeometry(track, routeWidthMm, options) {
   var route=[];
   var minE=Infinity,maxE=-Infinity;
   points.forEach(function(p){minE=Math.min(minE,p.e);maxE=Math.max(maxE,p.e);});
-  var elevSpan=maxE-minE, routeBottom=withBase?baseThickness-0.2:0, routeTopBase=withBase?baseThickness:0, routeBody=1;
+  var elevSpan=maxE-minE, routeBottom=withBase?baseThickness-0.2:0, routeTopBase=withBase?baseThickness:0, routeBody=routeThickness;
   for(var i=0;i<points.length;i++){
     var prev=points[Math.max(0,i-1)], next=points[Math.min(points.length-1,i+1)];
     var dx=(next.px-prev.px)*scale, dy=(next.py-prev.py)*scale, len=Math.hypot(dx,dy)||1;
@@ -58,6 +60,6 @@ function buildGeographic3MFGeometry(track, routeWidthMm, options) {
     base={vertices:baseV,triangles:baseT};
   }
   return {route:{vertices:vertices,triangles:triangles},base:base,
-    width:modelWidth,depth:modelDepth,height:routeTopBase+routeBody+relief,routeWidth:routeWidthMm,
+    width:modelWidth,depth:modelDepth,height:routeTopBase+routeBody+relief,routeWidth:routeWidthMm,reliefHeight:relief,baseThickness:baseThickness,routeThickness:routeThickness,
     baseMargin:margin,withBase:withBase};
 }
