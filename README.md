@@ -24,7 +24,8 @@ HTTPS ist für die PWA-Installation und den Service Worker erforderlich.
 - Mehrtagestouren und Urlaubsstatistik
 - OpenStreetMap-Vorschläge über die Overpass API
 - Kartenhintergrund mit OpenStreetMap oder OpenTopoMap
-- PNG-/SVG-Export und geografischer 3MF-Export
+- PNG-/SVG-Export
+- Eigenständiger 3D-Modellmodus mit geografischem 3MF-Export, konfigurierbarem Rand und optionaler Grundplatte
 - Offline-fähige Web-App; Kartenkacheln und Overpass-Abfragen benötigen eine Internetverbindung
 
 Bei Kartenhintergründen sind die Quellenangaben und Nutzungsbedingungen der jeweiligen Anbieter einzuhalten. OpenStreetMap-Daten stehen unter ODbL; OpenTopoMap verwendet CC-BY-SA.
