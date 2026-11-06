@@ -6,7 +6,7 @@ function buildGeographic3MFGeometry(track, routeWidthMm) {
   points.forEach(function(p){ minX=Math.min(minX,p.px); maxX=Math.max(maxX,p.px); minY=Math.min(minY,p.py); maxY=Math.max(maxY,p.py); });
   var spanX=maxX-minX, spanY=maxY-minY, maxSpan=Math.max(spanX,spanY);
   if (!isFinite(maxSpan) || maxSpan <= 0) throw new Error('Die Routengeometrie ist ungültig.');
-  var modelWidth=150, scale=modelWidth/maxSpan, modelDepth=Math.max(20, maxSpan===spanY?spanX*scale:spanY*scale);
+  var scale=150/maxSpan, modelWidth=Math.max(20,spanX*scale), modelDepth=Math.max(20,spanY*scale);
   var baseThickness=2, relief=8, route=[];
   var minE=Infinity,maxE=-Infinity;
   points.forEach(function(p){minE=Math.min(minE,p.e);maxE=Math.max(maxE,p.e);});
