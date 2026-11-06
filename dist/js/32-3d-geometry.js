@@ -7,7 +7,7 @@ function buildGeographic3MFGeometry(track, routeWidthMm, options) {
   if (!track.hasEle) throw new Error('Die GPX-Datei enthält keine ausreichenden Höhenangaben.');
   if(!isFinite(margin)||margin<0||margin>20) throw new Error('Der Rand muss zwischen 0 und 20 mm liegen.');
   if(!isFinite(maxSize)||maxSize<50||maxSize>250) throw new Error('Die Modellgröße muss zwischen 50 und 250 mm liegen.');
-  if(!isFinite(relief)||relief<1||relief>30||!isFinite(routeThickness)||routeThickness<0.4||routeThickness>5||!isFinite(baseThickness)||baseThickness<0.8||baseThickness>8) throw new Error('Bitte die 3D-Höhen- und Stärkewerte prüfen.');
+  if(!isFinite(relief)||relief<1||relief>30||!isFinite(routeThickness)||routeThickness<0.4||routeThickness>5||(withBase&&(!isFinite(baseThickness)||baseThickness<0.8||baseThickness>8))) throw new Error('Bitte die 3D-Höhen- und Stärkewerte prüfen.');
   var points = track.s, minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
   points.forEach(function(p){ minX=Math.min(minX,p.px); maxX=Math.max(maxX,p.px); minY=Math.min(minY,p.py); maxY=Math.max(maxY,p.py); });
   var spanX=maxX-minX, spanY=maxY-minY, maxSpan=Math.max(spanX,spanY);
