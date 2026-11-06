@@ -264,6 +264,7 @@ function renderStagesPoster(){
 }
 
 function setPosterMode(mode){
+  if(typeof setModelMode==='function'){setModelMode(false);}
   var vacation=mode==='vacation',stages=mode==='stages'; state.posterMode=vacation?'vacation':(stages?'stages':'route');
   if(vacation&&state.mapPosMode){setMapPosMode(false);}
   $('#routeMode').setAttribute('aria-pressed',vacation||stages?'false':'true');
